@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalender Interaktif Persib - Online Cloud</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <!-- 🟢 Firebase SDK (Compat Version agar kompatibel dengan script browser) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .calendar-single-card {
+            width: 100%;
+            max-width: 380px;
+            background: #ffffff;
+            border-radius: 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-top-banner {
+            background-color: #004b93;
+            background-image: 
+                linear-gradient(180deg, rgba(0, 32, 70, 0.4) 0%, rgba(0, 20, 50, 0.6) 100%),
+                url('megamendung.png'), 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='100' viewBox='0 0 200 100'%3E%3Cg stroke='%23ffffff' stroke-width='3' stroke-linejoin='round'%3E%3Cpath fill='%23003366' d='M-20,50 Q10,10 50,30 Q90,50 130,20 Q170,-10 210,30 L210,110 L-20,110 Z'/%3E%3Cpath fill='%230055a5' d='M-10,55 Q15,20 50,38 Q85,55 125,28 Q165,2 200,38 L200,110 L-10,110 Z'/%3E%3Cpath fill='%230077d6' d='M0,60 Q20,30 50,45 Q80,60 120,35 Q160,10 190,45 L190,110 L0,110 Z'/%3E%3Cpath fill='%2329a3ff' d='M10,65 Q25,40 50,52 Q75,65 115,42 Q155,20 180,52 L180,110 L10,110 Z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: cover, cover, 180px 90px;
+            background-position: center;
+            background-repeat: no-repeat, no-repeat, repeat;
+            height: 95px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #0284c7;
+            z-index: 20;
+        }
+
+        .month-label {
+            color: #ffffff;
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), 0 0 2px #000;
+            text-transform: uppercase;
+        }
+
+        .grid-pattern-btn {
+            width: 75px;
+            height: 45px;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.5) 20%, transparent 20%);
+            background-size: 8px 8px;
+            opacity: 0.95;
+            cursor: pointer;
+            border: 2px dashed rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .calendar-body-content {
+            padding: 1.25rem 1.25rem 2.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            min-height: 330px;
+            background-color: #ffffff;
+            overflow: hidden;
+        }
+
+        .calendar-body-content::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: var(--bg-image, none);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.50;
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: multiply;
+        }
+
+        .date-number {
+            font-size: 8.5rem;
+            font-weight: 800;
+            line-height: 0.85;
+            color: #1e293b;
+            letter-spacing: -4px;
+            user-select: none;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            z-index: 10;
+            margin-top: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .date-number.is-off-day {
+            color: #dc2626 !important;
+        }
+
+        .league-watermark {
+            width: 80px;
+            height: 70px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            z-index: 10;
+            opacity: 0.9;
+        }
+
+        .wm-bri-liga1 { background-image: url('bri-liga1.png'); }
+        .wm-piala-presiden { background-image: url('piala-presiden.png'); }
+        .wm-piala-indonesia { background-image: url('piala-indonesia.png'); }
+        .wm-acl2 { background-image: url('acl2.png'); }
+        .wm-asean-club { background-image: url('asean-club.png'); }
+
+        .prabu-mascot {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 150px;
+            height: auto;
+            z-index: 15;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            object-fit: contain;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-month-grid {
+            padding: 1.25rem 1rem 2rem 1rem;
+            min-height: 330px;
+            background: #ffffff;
+        }
+
+        .grid-header-day {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #64748b;
+            padding-bottom: 0.5rem;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+            color: #1e293b;
+        }
+
+        .day-cell:hover { background-color: #f1f5f9; }
+        .day-cell.active-day {
+            background-color: #0284c7;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
+        .day-cell.other-month { color: #cbd5e1; pointer-events: none; }
+
+        .cell-dots { display: flex; gap: 2px; position: absolute; bottom: 3px; }
+        .dot-off { width: 5px; height: 5px; background-color: #ef4444; border-radius: 50%; }
+        .dot-persib { width: 5px; height: 5px; background-color: #0284c7; border-radius: 50%; }
+
+        .peel-corner {
+            position: absolute; bottom: 0; right: 0;
+            width: 65px; height: 65px;
+            pointer-events: none; z-index: 20;
+        }
+        .peel-corner::before {
+            content: ""; position: absolute; bottom: 0; right: 0; width: 0; height: 0;
+            border-style: solid; border-width: 0 0 60px 60px;
+            border-color: transparent transparent #cbd5e1 transparent;
+            filter: drop-shadow(-3px -3px 4px rgba(0, 0, 0, 0.25));
+        }
+        .peel-corner::after {
+            content: ""; position: absolute; bottom: 0; right: 0; width: 0; height: 0;
+            border-style: solid; border-width: 0 0 58px 58px;
+            border-color: transparent transparent #f8fafc transparent;
+        }
+
+        .paper-stack-bottom {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 8px;
+            background: #cbd5e1; border-top: 1px solid #94a3b8;
+            border-radius: 0 0 1.75rem 1.75rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flex flex-col items-center w-full max-w-sm">
+        <div class="calendar-single-card">
+            <div class="calendar-top-banner">
+                <div>
+                    <span id="displayMonth" class="month-label">JULI</span>
+                    <p id="displayYear" class="text-xs text-sky-200 font-bold tracking-wider -mt-1 drop-shadow-sm">2026</p>
+                </div>
+
+                <button onclick="toggleModeTampilan()" title="Klik untuk ubah ke Kalender Bulanan / Harian" class="grid-pattern-btn group">
+                    <span id="btnModeLabel" class="text-[9px] font-black text-white bg-black/70 px-1.5 py-0.5 rounded backdrop-blur-xs group-hover:bg-black transition">
+                        BULAN
+                    </span>
+                </button>
+            </div>
+
+            <!-- MODE HARIAN -->
+            <div id="viewDaily" class="calendar-body-content">
+                <div class="w-full flex justify-between items-center min-h-[60px] z-10 px-1">
+                    <div id="leagueWatermark" class="league-watermark"></div>
+                    <div id="matchOpponentBox" class="ml-auto text-right max-w-[200px]"></div>
+                </div>
+
+                <div id="displayDate" class="date-number">1</div>
+                
+                <div class="mt-2 text-center z-10 w-full px-2">
+                    <p id="displayDayName" class="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">RABU</p>
+                    <div id="displayEventContainer" class="flex flex-col gap-1.5 items-center max-h-36 overflow-y-auto px-1"></div>
+                </div>
+
+                <img id="prabuImage" src="prabu.png" alt="Prabu Persib" class="prabu-mascot">
+            </div>
+
+            <!-- MODE BULANAN -->
+            <div id="viewMonthly" class="calendar-month-grid hidden">
+                <div class="grid grid-cols-7 gap-1 mb-1">
+                    <div class="grid-header-day text-sky-600">MG</div>
+                    <div class="grid-header-day">SN</div>
+                    <div class="grid-header-day">SL</div>
+                    <div class="grid-header-day">RB</div>
+                    <div class="grid-header-day">KM</div>
+                    <div class="grid-header-day">JM</div>
+                    <div class="grid-header-day">SB</div>
+                </div>
+                <div id="monthlyGridCells" class="grid grid-cols-7 gap-1"></div>
+            </div>
+
+            <div id="peelCorner" class="peel-corner"></div>
+            <div class="paper-stack-bottom"></div>
+        </div>
+
+        <!-- NAVIGASI -->
+        <div class="flex items-center justify-between w-full mt-5 gap-2">
+            <button id="btnPrev" onclick="navigasiWaktu(-1)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-3 rounded-xl shadow border border-slate-700 transition active:scale-95 text-xs text-center cursor-pointer">
+                ◀️ Kemarin
+            </button>
+            <button onclick="keHariIni()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 px-4 rounded-xl shadow border border-sky-500 transition active:scale-95 text-xs text-center cursor-pointer">
+                Hari Ini
+            </button>
+            <button id="btnNext" onclick="navigasiWaktu(1)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-3 rounded-xl shadow border border-slate-700 transition active:scale-95 text-xs text-center cursor-pointer">
+                Besok ▶️
+            </button>
+        </div>
+
+        <button onclick="bukaModal()" class="w-full mt-3 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-xl shadow border border-sky-500 transition active:scale-95 text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+            📝 Kelola / Tambah Jadwal Tanggal Ini
+        </button>
+    </div>
+
+    <!-- MODAL INPUT JADWAL -->
+    <div id="inputModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
+        <div class="bg-white p-5 rounded-2xl shadow-2xl max-w-xs w-full border border-gray-100">
+            <h3 class="text-base font-bold text-gray-900 mb-1">Kelola Jadwal</h3>
+            <p id="modalDateInfo" class="text-xs text-gray-500 mb-3 font-medium"></p>
+            
+            <div class="space-y-2.5">
+                <button onclick="simpanJadwal('off')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-3 rounded-xl transition text-xs shadow-xs cursor-pointer">
+                    🛋️ Tambah OFF DAY
+                </button>
+                
+                <div class="border-t border-gray-200 pt-2.5">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tambah Jadwal Persib</label>
+                    <input type="text" id="vsOpponent" placeholder="Contoh: Persib vs Persija" class="w-full px-3 py-1.5 border border-gray-200 rounded-xl focus:outline-sky-500 mb-2 text-xs bg-white">
+                    
+                    <label class="block text-[10px] font-semibold text-gray-500 mb-1">Pilih Kompetisi / Liga:</label>
+                    <select id="ligaType" class="w-full px-2.5 py-1.5 border border-gray-200 rounded-xl focus:outline-sky-500 text-xs bg-white mb-2 font-medium text-gray-700">
+                        <option value="bri-liga1">🇮🇩 BRI Liga 1</option>
+                        <option value="piala-presiden">🏆 Piala Presiden</option>
+                        <option value="piala-indonesia">🦅 Piala Indonesia</option>
+                        <option value="acl2">🌏 ACL Two</option>
+                        <option value="asean-club">🦁 ASEAN Club</option>
+                    </select>
+
+                    <div class="flex gap-2 mb-2.5">
+                        <label class="flex-1 flex items-center justify-center gap-1 bg-gray-50 hover:bg-gray-100 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[11px] font-semibold">
+                            <input type="radio" name="matchType" value="home" checked> 🏟️ Home
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-1 bg-gray-50 hover:bg-gray-100 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[11px] font-semibold">
+                            <input type="radio" name="matchType" value="away"> ✈️ Away
+                        </label>
+                    </div>
+
+                    <button onclick="simpanJadwal('persib')" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-3 rounded-xl transition text-xs shadow-xs cursor-pointer">
+                        ⚽ Simpan Jadwal Persib
+                    </button>
+                </div>
+            </div>
+
+            <div id="daftarJadwalLokal" class="border-t border-gray-200 mt-3 pt-2.5 hidden">
+                <p class="text-[11px] font-bold text-gray-600 mb-1.5">Jadwal Terpasang (Klik Hapus jika Salah):</p>
+                <div id="listJadwalLokal" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
+            </div>
+
+            <button onclick="tutupModal()" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 rounded-xl text-xs transition cursor-pointer">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // 🔥 KONFIGURASI FIREBASE ANDA
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhs5IMVeB6qkXDPCi1xBBOLIBC3f5pru4",
+            authDomain: "kalender-persib.firebaseapp.com",
+            databaseURL: "https://kalender-persib-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kalender-persib",
+            storageBucket: "kalender-persib.firebasestorage.app",
+            messagingSenderId: "894037392283",
+            appId: "1:894037392283:web:fbb08f68754c381b10ff3e",
+            measurementId: "G-1E6DTHZHVX"
+        };
+
+        // Inisialisasi Firebase Realtime Database
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const dbRefJadwal = db.ref('jadwal_kalender');
+
+        let dataJadwalCloud = [];
+        let tanggalAktif = new Date();
+        let isMonthlyView = localStorage.getItem('cal_view_mode') === 'monthly';
+
+        const namaBulan = [
+            "JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI",
+            "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"
+        ];
+
+        const namaHari = [
+            "MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"
+        ];
+
+        // 🔄 BACA DATA REALTIME DARI FIREBASE CLOUD
+        dbRefJadwal.on('value', (snapshot) => {
+            const data = snapshot.val();
+            dataJadwalCloud = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    dataJadwalCloud.push({ firebaseId: key, ...data[key] });
+                });
+            }
+            renderKalender();
+        });
+
+        function toggleModeTampilan() {
+            isMonthlyView = !isMonthlyView;
+            localStorage.setItem('cal_view_mode', isMonthlyView ? 'monthly' : 'daily');
+            terapkanModeTampilanUI();
+            renderKalender();
+        }
+
+        function terapkanModeTampilanUI() {
+            const viewDaily = document.getElementById('viewDaily');
+            const viewMonthly = document.getElementById('viewMonthly');
+            const peelCorner = document.getElementById('peelCorner');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+            const btnModeLabel = document.getElementById('btnModeLabel');
+
+            if (isMonthlyView) {
+                viewDaily.classList.add('hidden');
+                viewMonthly.classList.remove('hidden');
+                peelCorner.classList.add('hidden');
+                btnPrev.innerText = "◀️ Bulan Lalu";
+                btnNext.innerText = "Bulan Depan ▶️";
+                btnModeLabel.innerText = "HARI";
+            } else {
+                viewDaily.classList.remove('hidden');
+                viewMonthly.classList.add('hidden');
+                peelCorner.classList.remove('hidden');
+                btnPrev.innerText = "◀️ Kemarin";
+                btnNext.innerText = "Besok ▶️";
+                btnModeLabel.innerText = "BULAN";
+            }
+        }
+
+        function renderKalender() {
+            const tgl = tanggalAktif.getDate();
+            const bln = tanggalAktif.getMonth();
+            const thn = tanggalAktif.getFullYear();
+            const hr = tanggalAktif.getDay();
+
+            document.getElementById('displayMonth').innerText = namaBulan[bln];
+            document.getElementById('displayYear').innerText = thn;
+
+            if (!isMonthlyView) {
+                const dateEl = document.getElementById('displayDate');
+                dateEl.innerText = tgl;
+                document.getElementById('displayDayName').innerText = namaHari[hr];
+
+                const calBody = document.getElementById('viewDaily');
+                calBody.style.setProperty('--bg-image', `url('${tgl}.PNG')`);
+
+                const bulanStr = String(bln + 1).padStart(2, '0');
+                const tglStr = String(tgl).padStart(2, '0');
+                const keyFormat = `${thn}-${bulanStr}-${tglStr}`;
+
+                const jadwalHariIni = dataJadwalCloud.filter(item => item.start === keyFormat);
+                const container = document.getElementById('displayEventContainer');
+                const prabuImg = document.getElementById('prabuImage');
+                const watermarkEl = document.getElementById('leagueWatermark');
+                const opponentBox = document.getElementById('matchOpponentBox');
+
+                container.innerHTML = "";
+                opponentBox.innerHTML = "";
+                watermarkEl.className = "league-watermark";
+
+                const adaOffDay = jadwalHariIni.some(item => item.isOff);
+                if (adaOffDay) {
+                    dateEl.classList.add('is-off-day');
+                } else {
+                    dateEl.classList.remove('is-off-day');
+                }
+
+                const jadwalPersib = jadwalHariIni.find(item => item.isPersib);
+
+                if (jadwalPersib) {
+                    prabuImg.src = 'prabu2.png';
+                    if (jadwalPersib.kompetisi) {
+                        watermarkEl.classList.add('wm-' + jadwalPersib.kompetisi);
+                    }
+                    opponentBox.innerHTML = `
+                        <div class="bg-sky-900/90 text-white px-3 py-1.5 rounded-xl border border-sky-400 shadow-md">
+                            <p class="text-[9px] font-semibold text-sky-200 tracking-wider uppercase">MATCHDAY</p>
+                            <p class="text-xs font-extrabold truncate">${jadwalPersib.title}</p>
+                        </div>
+                    `;
+                } else {
+                    prabuImg.src = 'prabu.png';
+                }
+
+                if (jadwalHariIni.length > 0) {
+                    jadwalHariIni.forEach(item => {
+                        if (item.isOff) {
+                            const badge = document.createElement('div');
+                            badge.className = "text-[11px] font-bold px-3 py-1 rounded-full bg-red-100 text-red-700 border border-red-300 shadow-2xs w-full text-center truncate";
+                            badge.innerText = item.title;
+                            container.appendChild(badge);
+                        }
+                    });
+                }
+            } else {
+                renderGridBulanan();
+            }
+        }
+
+        function renderGridBulanan() {
+            const gridContainer = document.getElementById('monthlyGridCells');
+            gridContainer.innerHTML = "";
+
+            const bln = tanggalAktif.getMonth();
+            const thn = tanggalAktif.getFullYear();
+
+            const hariPertama = new Date(thn, bln, 1).getDay();
+            const totalHariBulanIni = new Date(thn, bln + 1, 0).getDate();
+            const totalHariBulanLalu = new Date(thn, bln, 0).getDate();
+
+            for (let i = hariPertama - 1; i >= 0; i--) {
+                const cell = document.createElement('div');
+                cell.className = "day-cell other-month";
+                cell.innerText = totalHariBulanLalu - i;
+                gridContainer.appendChild(cell);
+            }
+
+            for (let d = 1; d <= totalHariBulanIni; d++) {
+                const cell = document.createElement('div');
+                cell.className = "day-cell";
+                cell.innerText = d;
+
+                if (d === tanggalAktif.getDate()) {
+                    cell.classList.add('active-day');
+                }
+
+                const bulanStr = String(bln + 1).padStart(2, '0');
+                const tglStr = String(d).padStart(2, '0');
+                const keyFormat = `${thn}-${bulanStr}-${tglStr}`;
+                const jadwalSel = dataJadwalCloud.filter(item => item.start === keyFormat);
+
+                if (jadwalSel.length > 0) {
+                    const dotsDiv = document.createElement('div');
+                    dotsDiv.className = "cell-dots";
+                    
+                    if (jadwalSel.some(j => j.isOff)) {
+                        const dotOff = document.createElement('span');
+                        dotOff.className = "dot-off";
+                        dotsDiv.appendChild(dotOff);
+                    }
+                    if (jadwalSel.some(j => j.isPersib)) {
+                        const dotPersib = document.createElement('span');
+                        dotPersib.className = "dot-persib";
+                        dotsDiv.appendChild(dotPersib);
+                    }
+                    cell.appendChild(dotsDiv);
+                }
+
+                cell.onclick = function() {
+                    tanggalAktif.setDate(d);
+                    renderKalender();
+                };
+
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        function navigasiWaktu(delta) {
+            if (!isMonthlyView) {
+                tanggalAktif.setDate(tanggalAktif.getDate() + delta);
+            } else {
+                tanggalAktif.setMonth(tanggalAktif.getMonth() + delta);
+            }
+            renderKalender();
+        }
+
+        function keHariIni() {
+            tanggalAktif = new Date();
+            renderKalender();
+        }
+
+        function bukaModal() {
+            const tahunStr = tanggalAktif.getFullYear();
+            const bulanStr = String(tanggalAktif.getMonth() + 1).padStart(2, '0');
+            const tglStr = String(tanggalAktif.getDate()).padStart(2, '0');
+            const keyFormat = `${tahunStr}-${bulanStr}-${tglStr}`;
+
+            document.getElementById('modalDateInfo').innerText = `Tanggal: ${keyFormat}`;
+            document.getElementById('vsOpponent').value = "";
+            
+            const jadwalHariIni = dataJadwalCloud.filter(item => item.start === keyFormat);
+            const listContainer = document.getElementById('listJadwalLokal');
+            const divDaftar = document.getElementById('daftarJadwalLokal');
+            
+            listContainer.innerHTML = "";
+            if (jadwalHariIni.length > 0) {
+                divDaftar.classList.remove('hidden');
+                jadwalHariIni.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left text-[11px] bg-red-50 hover:bg-red-100 text-red-700 p-1.5 rounded-lg flex justify-between items-center font-semibold border border-red-200 transition cursor-pointer";
+                    btn.innerHTML = `<span class="truncate">${item.title}</span> <span class="text-red-500 font-bold shrink-0 ml-1">🗑️ Hapus</span>`;
+                    btn.onclick = function() { hapusJadwal(item.firebaseId); };
+                    listContainer.appendChild(btn);
+                });
+            } else {
+                divDaftar.classList.add('hidden');
+            }
+            
+            document.getElementById('inputModal').classList.remove('hidden');
+        }
+
+        // ☁️ SIMPAN DATA KE FIREBASE CLOUD
+        function simpanJadwal(tipe) {
+            const tahunStr = tanggalAktif.getFullYear();
+            const bulanStr = String(tanggalAktif.getMonth() + 1).padStart(2, '0');
+            const tglStr = String(tanggalAktif.getDate()).padStart(2, '0');
+            const keyFormat = `${tahunStr}-${bulanStr}-${tglStr}`;
+
+            let dataBaru = {};
+
+            if (tipe === 'off') {
+                dataBaru = {
+                    start: keyFormat,
+                    title: "🛋️ OFF DAY",
+                    isOff: true
+                };
+            } else if (tipe === 'persib') {
+                const lawan = document.getElementById('vsOpponent').value.trim();
+                if (!lawan) { alert("Masukkan nama lawan!"); return; }
+                
+                const kompetisiDipilih = document.getElementById('ligaType').value;
+                const tipeMatch = document.querySelector('input[name="matchType"]:checked').value;
+                const ikonSpace = (tipeMatch === 'home') ? "🏟️ " : "✈️ ";
+
+                dataBaru = {
+                    start: keyFormat,
+                    title: ikonSpace + lawan,
+                    isPersib: true,
+                    kompetisi: kompetisiDipilih
+                };
+            }
+
+            dbRefJadwal.push(dataBaru).then(() => {
+                bukaModal();
+            });
+        }
+
+        // 🗑️ HAPUS DATA DARI FIREBASE CLOUD
+        function hapusJadwal(firebaseId) {
+            dbRefJadwal.child(firebaseId).remove().then(() => {
+                bukaModal();
+            });
+        }
+
+        function tutupModal() {
+            document.getElementById('inputModal').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            terapkanModeTampilanUI();
+            renderKalender();
+        });
+    </script>
+</body>
+</html>
