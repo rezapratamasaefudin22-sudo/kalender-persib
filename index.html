@@ -37,6 +37,16 @@
             transition: all 0.3s ease;
         }
 
+        /* Sembunyikan tanggal besar dan elemen harian saat mode bulanan aktif */
+        .calendar-single-card.monthly-active #displayDate,
+        .calendar-single-card.monthly-active #displayDayName,
+        .calendar-single-card.monthly-active #displayEventContainer,
+        .calendar-single-card.monthly-active #matchOpponentBox,
+        .calendar-single-card.monthly-active #leagueWatermark,
+        .calendar-single-card.monthly-active #prabuImage {
+            display: none !important;
+        }
+
         .calendar-top-banner {
             background-color: #004b93;
             background-image: 
@@ -340,7 +350,7 @@
                     </div>
                 </div>
 
-                <!-- HITUNG MUNDUR CUTI / VACATION (BARU) -->
+                <!-- HITUNG MUNDUR CUTI / VACATION -->
                 <div id="countdownBannerVacation" class="hidden w-full bg-slate-900/90 border border-amber-500/50 text-white px-3 py-2.5 rounded-2xl flex flex-col gap-1.5 shadow-lg backdrop-blur-md">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 truncate">
@@ -673,10 +683,7 @@
             const btnPrev = document.getElementById('btnPrev');
             const btnNext = document.getElementById('btnNext');
             const btnModeLabel = document.getElementById('btnModeLabel');
-            
-            const displayDate = document.getElementById('displayDate');
-            const displayDayName = document.getElementById('displayDayName');
-            const displayEventContainer = document.getElementById('displayEventContainer');
+            const cardPrint = document.getElementById('calendarCardPrint');
 
             viewDaily.classList.remove('hidden');
 
@@ -687,9 +694,7 @@
                 btnNext.innerText = "Bulan Depan ▶️";
                 btnModeLabel.innerText = "HARI";
                 
-                displayDate.classList.add('hidden');
-                displayDayName.classList.add('hidden');
-                displayEventContainer.classList.add('hidden');
+                cardPrint.classList.add('monthly-active');
             } else {
                 viewMonthly.classList.add('hidden');
                 peelCorner.classList.remove('hidden');
@@ -697,9 +702,7 @@
                 btnNext.innerText = "Besok ▶️";
                 btnModeLabel.innerText = "BULAN";
                 
-                displayDate.classList.remove('hidden');
-                displayDayName.classList.remove('hidden');
-                displayEventContainer.classList.remove('hidden');
+                cardPrint.classList.remove('monthly-active');
             }
         }
 
