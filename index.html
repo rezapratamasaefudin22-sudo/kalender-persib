@@ -279,6 +279,35 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #0284c7; border-radius: 4px; }
+
+        /* ATURAN @MEDIA PRINT UNTUK CETAK / SIMPAN PDF */
+        @media print {
+    /* Sembunyikan semua elemen kecuali kartu kalender utama */
+    body * {
+        visibility: hidden;
+    }
+    
+    #calendarCardPrint, #calendarCardPrint * {
+        visibility: visible;
+    }
+
+    #calendarCardPrint {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        max-width: 380px;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Memaksa browser mencetak warna latar belakang elemen */
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
     </style>
 </head>
 <body>
@@ -374,6 +403,7 @@
 
             </div>
 
+            <!-- KARTU UTAMA DENGAN ID calendarCardPrint -->
             <div id="calendarCardPrint" class="calendar-single-card">
                 <div class="calendar-top-banner">
                     <div>
