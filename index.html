@@ -14,8 +14,26 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
+        :root {
+            --app-bg: #0b1329;
+            --card-bg: #ffffff;
+            --card-text: #0f172a;
+            --sub-text: #64748b;
+            --border-color: #38bdf8;
+            --grid-hover: #f1f5f9;
+        }
+
+        .dark-mode {
+            --app-bg: #030712;
+            --card-bg: #0f172a;
+            --card-text: #f8fafc;
+            --sub-text: #94a3b8;
+            --border-color: #0284c7;
+            --grid-hover: #1e293b;
+        }
+
         body {
-            background-color: #0b1329;
+            background-color: var(--app-bg);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             display: flex;
@@ -23,17 +41,18 @@
             justify-content: center;
             margin: 0;
             padding: 1.5rem 1rem;
+            transition: background-color 0.3s ease;
         }
 
         .calendar-single-card {
             width: 100%;
             max-width: 380px;
-            background: #ffffff;
+            background: var(--card-bg);
             border-radius: 1.75rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             position: relative;
             overflow: hidden;
-            border: 1px solid #38bdf8;
+            border: 1px solid var(--border-color);
             transition: all 0.3s ease;
         }
 
@@ -116,12 +135,13 @@
             justify-content: flex-start;
             position: relative;
             min-height: 340px;
-            background-color: #ffffff;
+            background-color: var(--card-bg);
             background-image: var(--bg-image, none);
             background-repeat: no-repeat;
             background-position: center bottom;
             background-size: contain;
             overflow: hidden;
+            transition: background-color 0.3s ease;
         }
 
         .calendar-body-content::before {
@@ -133,12 +153,16 @@
             z-index: 1;
         }
 
+        .dark-mode .calendar-body-content::before {
+            background: rgba(15, 23, 42, 0.4);
+        }
+
         .date-number {
             font-family: 'Saira Stencil One', sans-serif !important;
             font-size: 8.5rem;
             font-weight: 400;
             line-height: 0.8;
-            color: #0f172a;
+            color: var(--card-text);
             user-select: none;
             filter: drop-shadow(0 4px 10px rgba(255, 255, 255, 0.9)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
             z-index: 10;
@@ -154,9 +178,10 @@
             font-weight: 400;
             font-size: 1.15rem;
             letter-spacing: 2px;
-            color: #0f172a;
+            color: var(--card-text);
             text-transform: uppercase;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+            transition: color 0.3s ease;
         }
 
         .league-watermark {
@@ -194,7 +219,8 @@
         .calendar-month-grid {
             padding: 1.25rem 1rem 2rem 1rem;
             min-height: 330px;
-            background: #ffffff;
+            background: var(--card-bg);
+            transition: background-color 0.3s ease;
         }
 
         .grid-header-day {
@@ -202,7 +228,7 @@
             font-family: 'Saira Stencil One', sans-serif !important;
             font-size: 0.8rem;
             font-weight: 400;
-            color: #64748b;
+            color: var(--sub-text);
             padding-bottom: 0.5rem;
         }
 
@@ -219,17 +245,17 @@
             cursor: pointer;
             position: relative;
             transition: all 0.15s ease;
-            color: #1e293b;
+            color: var(--card-text);
             line-height: 1;
         }
 
-        .day-cell:hover { background-color: #f1f5f9; }
+        .day-cell:hover { background-color: var(--grid-hover); }
         .day-cell.active-day {
             background-color: #0284c7;
             color: #ffffff;
             box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
         }
-        .day-cell.other-month { color: #cbd5e1; pointer-events: none; }
+        .day-cell.other-month { color: var(--sub-text); opacity: 0.5; pointer-events: none; }
 
         .cell-dots { display: flex; gap: 2px; position: absolute; bottom: 3px; }
         .dot-off { width: 5px; height: 5px; background-color: #ef4444; border-radius: 50%; }
@@ -244,18 +270,19 @@
         .peel-corner::before {
             content: ""; position: absolute; bottom: 0; right: 0; width: 0; height: 0;
             border-style: solid; border-width: 0 0 60px 60px;
-            border-color: transparent transparent #cbd5e1 transparent;
+            border-color: transparent transparent var(--sub-text) transparent;
             filter: drop-shadow(-3px -3px 4px rgba(0, 0, 0, 0.25));
+            opacity: 0.4;
         }
         .peel-corner::after {
             content: ""; position: absolute; bottom: 0; right: 0; width: 0; height: 0;
             border-style: solid; border-width: 0 0 58px 58px;
-            border-color: transparent transparent #f8fafc transparent;
+            border-color: transparent transparent var(--card-bg) transparent;
         }
 
         .paper-stack-bottom {
             position: absolute; bottom: 0; left: 0; right: 0; height: 8px;
-            background: #cbd5e1; border-top: 1px solid #94a3b8;
+            background: var(--sub-text); opacity: 0.5; border-top: 1px solid var(--sub-text);
             border-radius: 0 0 1.75rem 1.75rem;
         }
 
@@ -280,34 +307,31 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #0284c7; border-radius: 4px; }
 
-        /* ATURAN @MEDIA PRINT UNTUK CETAK / SIMPAN PDF */
         @media print {
-    /* Sembunyikan semua elemen kecuali kartu kalender utama */
-    body * {
-        visibility: hidden;
-    }
-    
-    #calendarCardPrint, #calendarCardPrint * {
-        visibility: visible;
-    }
+            body * {
+                visibility: hidden;
+            }
+            
+            #calendarCardPrint, #calendarCardPrint * {
+                visibility: visible;
+            }
 
-    #calendarCardPrint {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        max-width: 380px;
-        border: none !important;
-        box-shadow: none !important;
-    }
+            #calendarCardPrint {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                max-width: 380px;
+                border: none !important;
+                box-shadow: none !important;
+            }
 
-    /* Memaksa browser mencetak warna latar belakang elemen */
-    * {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-}
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
     </style>
 </head>
 <body>
@@ -347,13 +371,16 @@
             <!-- PANEL TOGGLE & COUNTDOWN CONTAINER -->
             <div class="w-full flex flex-col gap-2">
                 
-                <!-- TOMBOL PILIH TIPE COUNTDOWN (MATCH VS CUTI) -->
-                <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-sky-900/80">
-                    <button onclick="switchCountdownTab('match')" id="tabBtnMatch" class="py-1.5 px-2 rounded-lg text-[10px] font-black uppercase transition bg-sky-600 text-white shadow cursor-pointer flex items-center justify-center gap-1">
-                        ⚽ Countdown Match
+                <!-- TOMBOL PILIH TIPE COUNTDOWN & DARK/LIGHT MODE -->
+                <div class="grid grid-cols-3 gap-1.5 bg-slate-950 p-1 rounded-xl border border-sky-900/80">
+                    <button onclick="switchCountdownTab('match')" id="tabBtnMatch" class="py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-sky-600 text-white shadow cursor-pointer flex items-center justify-center gap-1">
+                        ⚽ Match
                     </button>
-                    <button onclick="switchCountdownTab('vacation')" id="tabBtnVacation" class="py-1.5 px-2 rounded-lg text-[10px] font-black uppercase transition bg-transparent text-slate-400 hover:text-white cursor-pointer flex items-center justify-center gap-1">
-                        🏖️ Countdown Cuti
+                    <button onclick="switchCountdownTab('vacation')" id="tabBtnVacation" class="py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-transparent text-slate-400 hover:text-white cursor-pointer flex items-center justify-center gap-1">
+                        🏖️ Cuti
+                    </button>
+                    <button onclick="toggleThemeMode()" id="btnThemeToggle" class="py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-slate-800 text-sky-300 hover:text-white cursor-pointer flex items-center justify-center gap-1 border border-slate-700">
+                        🌙 Tema
                     </button>
                 </div>
 
@@ -428,7 +455,7 @@
                     <div id="displayDate" class="date-number">1</div>
                     
                     <div class="mt-1 text-center z-10 w-full px-2">
-                        <p id="displayDayName" class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">RABU</p>
+                        <p id="displayDayName" class="text-xs font-black uppercase tracking-widest mb-1">RABU</p>
                         <div id="displayEventContainer" class="flex flex-col gap-1 items-center max-h-36 overflow-y-auto px-1"></div>
                     </div>
 
@@ -637,6 +664,7 @@
         let dataJadwalCloud = [];
         let tanggalAktif = new Date();
         let isMonthlyView = localStorage.getItem('cal_view_mode') === 'monthly';
+        let isDarkMode = localStorage.getItem('theme_mode') === 'dark';
         let countdownInterval = null;
         let vacationCountdownInterval = null;
 
@@ -670,6 +698,25 @@
             updateCountdownNextVacation();
         });
 
+        function toggleThemeMode() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('theme_mode', isDarkMode ? 'dark' : 'light');
+            terapkanThemeUI();
+        }
+
+        function terapkanThemeUI() {
+            const btnThemeToggle = document.getElementById('btnThemeToggle');
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark-mode');
+                btnThemeToggle.innerHTML = "☀️ Terang";
+                btnThemeToggle.className = "py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-amber-600 text-white hover:bg-amber-500 cursor-pointer flex items-center justify-center gap-1 border border-amber-500";
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+                btnThemeToggle.innerHTML = "🌙 Tema";
+                btnThemeToggle.className = "py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-slate-800 text-sky-300 hover:text-white cursor-pointer flex items-center justify-center gap-1 border border-slate-700";
+            }
+        }
+
         function switchCountdownTab(type) {
             const btnMatch = document.getElementById('tabBtnMatch');
             const btnVacation = document.getElementById('tabBtnVacation');
@@ -677,13 +724,13 @@
             const bannerVacation = document.getElementById('countdownBannerVacation');
 
             if (type === 'match') {
-                btnMatch.className = "py-1.5 px-2 rounded-lg text-[10px] font-black uppercase transition bg-sky-600 text-white shadow cursor-pointer flex items-center justify-center gap-1";
-                btnVacation.className = "py-1.5 px-2 rounded-lg text-[10px] font-black uppercase transition bg-transparent text-slate-400 hover:text-white cursor-pointer flex items-center justify-center gap-1";
+                btnMatch.className = "py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-sky-600 text-white shadow cursor-pointer flex items-center justify-center gap-1";
+                btnVacation.className = "py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-transparent text-slate-400 hover:text-white cursor-pointer flex items-center justify-center gap-1";
                 bannerMatch.classList.remove('hidden');
                 bannerVacation.classList.add('hidden');
             } else {
-                btnVacation.className = "py-1.5 px-2 rounded-lg text-[10px] font-black uppercase transition bg-amber-600 text-white shadow cursor-pointer flex items-center justify-center gap-1";
-                btnMatch.className = "py-1.5 px-2 rounded-lg text-[10px] font-black uppercase transition bg-transparent text-slate-400 hover:text-white cursor-pointer flex items-center justify-center gap-1";
+                btnVacation.className = "py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-amber-600 text-white shadow cursor-pointer flex items-center justify-center gap-1";
+                btnMatch.className = "py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-transparent text-slate-400 hover:text-white cursor-pointer flex items-center justify-center gap-1";
                 bannerVacation.classList.remove('hidden');
                 bannerMatch.classList.add('hidden');
             }
@@ -738,10 +785,18 @@
 
         function updateCountdownNextMatch() {
             const now = new Date();
-            const todayStr = now.toISOString().split('T')[0];
             
             const upcomingMatches = dataJadwalCloud
-                .filter(item => item.isPersib && item.start && item.start >= todayStr)
+                .filter(item => {
+                    if (!item.isPersib || !item.start) return false;
+                    let matchTimeStr = "19:30";
+                    if (item.time && typeof item.time === 'string' && item.time.includes(':')) {
+                        matchTimeStr = item.time.trim();
+                        if (matchTimeStr.length === 4) matchTimeStr = "0" + matchTimeStr;
+                    }
+                    const targetDateTime = new Date(`${item.start}T${matchTimeStr}:00`);
+                    return targetDateTime > now;
+                })
                 .sort((a,b) => a.start.localeCompare(b.start));
 
             const titleEl = document.getElementById('nextMatchTitle');
@@ -800,6 +855,10 @@
             } else {
                 titleEl.innerText = "Belum Ada Jadwal Match";
                 daysEl.innerText = "-";
+                document.getElementById('cdDays').innerText = "00";
+                document.getElementById('cdHours').innerText = "00";
+                document.getElementById('cdMinutes').innerText = "00";
+                document.getElementById('cdSeconds').innerText = "00";
             }
         }
 
@@ -865,7 +924,7 @@
         }
 
         function bukaModalScore(matchTitle) {
-            const titleClean = matchTitle.replace(/^[🏟️✈️\s]+/, '').trim();
+            const titleClean = matchTitle.replace(/^[🏟️✈️\s]+/, '').replace(/\[SELESAI\]/g, '').trim();
             document.getElementById('scoreMatchTitleSide').innerText = titleClean;
 
             const querySearch = encodeURIComponent(titleClean + " live score hasil pertandingan");
@@ -1051,30 +1110,44 @@
                 listMatch.sort((a,b) => (a.kompetisi || '').localeCompare(b.kompetisi || '') || a.start.localeCompare(b.start));
             }
 
+            const now = new Date();
+
             if (listMatch.length > 0) {
                 listMatch.forEach(item => {
+                    let matchTimeStr = "19:30";
+                    if (item.time && typeof item.time === 'string' && item.time.includes(':')) {
+                        matchTimeStr = item.time.trim();
+                        if (matchTimeStr.length === 4) matchTimeStr = "0" + matchTimeStr;
+                    }
+                    const targetDateTime = new Date(`${item.start}T${matchTimeStr}:00`);
+                    const isPassed = targetDateTime < now;
+
                     const dateObj = new Date(item.start + 'T00:00:00');
                     const tglNum = dateObj.getDate();
                     const namaHariStr = namaHari[dateObj.getDay()];
                     const kompText = namaKompetisiMap[item.kompetisi] || 'Kompetisi';
 
                     const timeVenueText = (item.time || item.venue) 
-                        ? `<p class="text-[10px] text-sky-300/80 font-normal mt-0.5">🕒 ${item.time || ''} ${item.venue ? '• ' + item.venue : ''}</p>`
+                        ? `<p class="text-[10px] ${isPassed ? 'text-slate-500' : 'text-sky-300/80'} font-normal mt-0.5">🕒 ${item.time || ''} ${item.venue ? '• ' + item.venue : ''}</p>`
                         : '';
 
+                    // Styling tambahan jika sudah lewat (redup / abu-abu)
+                    const cardBgClass = isPassed ? "bg-slate-900/40 border-slate-800 opacity-75" : "bg-slate-950/80 border-sky-800/60 hover:border-sky-400";
+                    const badgePassedHTML = isPassed ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">SELESAI</span>` : `<span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-700">${kompText}</span>`;
+
                     const el = document.createElement('div');
-                    el.className = "flex flex-col gap-1 bg-slate-950/80 p-2.5 rounded-xl border border-sky-800/60 text-xs cursor-pointer hover:border-sky-400 transition active:scale-98 group";
+                    el.className = `flex flex-col gap-1 p-2.5 rounded-xl border text-xs cursor-pointer transition active:scale-98 group ${cardBgClass}`;
                     el.onclick = function() { bukaModalScore(item.title); };
                     el.innerHTML = `
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <span class="w-7 h-7 flex items-center justify-center bg-sky-500/20 text-sky-300 font-extrabold rounded-lg border border-sky-500/30 text-xs shrink-0 group-hover:bg-sky-500 group-hover:text-white">${tglNum}</span>
-                                <span class="text-slate-200 font-bold text-[11px]">${namaHariStr}</span>
+                                <span class="w-7 h-7 flex items-center justify-center ${isPassed ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-sky-500/20 text-sky-300 border-sky-500/30 group-hover:bg-sky-500 group-hover:text-white'} font-extrabold rounded-lg border text-xs shrink-0">${tglNum}</span>
+                                <span class="${isPassed ? 'text-slate-500 line-through' : 'text-slate-200'} font-bold text-[11px]">${namaHariStr}</span>
                             </div>
-                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-700">${kompText}</span>
+                            ${badgePassedHTML}
                         </div>
-                        <div class="mt-1 pl-9 font-extrabold text-sky-100 text-xs group-hover:text-sky-300">
-                            <div class="truncate">${item.title} 📊</div>
+                        <div class="mt-1 pl-9 font-extrabold ${isPassed ? 'text-slate-400' : 'text-sky-100 group-hover:text-sky-300'} text-xs">
+                            <div class="truncate">${isPassed ? '✅ [SELESAI] ' : ''}${item.title.replace(/\[SELESAI\]/g, '')} 📊</div>
                             ${timeVenueText}
                         </div>
                     `;
@@ -1277,6 +1350,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            terapkanThemeUI();
             terapkanModeTampilanUI();
             renderKalender();
         });
