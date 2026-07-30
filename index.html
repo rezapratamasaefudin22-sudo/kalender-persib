@@ -56,7 +56,21 @@
             transition: all 0.3s ease;
         }
 
-        /* Sembunyikan tanggal besar dan elemen harian saat mode bulanan aktif */
+        .page-transition {
+            animation: cardFadeSlide 0.25s ease-in-out forwards;
+        }
+
+        @keyframes cardFadeSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(8px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .calendar-single-card.monthly-active #displayDate,
         .calendar-single-card.monthly-active #displayDayName,
         .calendar-single-card.monthly-active #displayEventContainer,
@@ -308,14 +322,8 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #0284c7; border-radius: 4px; }
 
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            
-            #calendarCardPrint, #calendarCardPrint * {
-                visibility: visible;
-            }
-
+            body * { visibility: hidden; }
+            #calendarCardPrint, #calendarCardPrint * { visibility: visible; }
             #calendarCardPrint {
                 position: absolute;
                 left: 50%;
@@ -326,11 +334,7 @@
                 border: none !important;
                 box-shadow: none !important;
             }
-
-            * {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -368,10 +372,7 @@
         <!-- KALENDER UTAMA -->
         <div class="flex flex-col items-center gap-3 w-full max-w-sm mx-auto lg:mx-0 shrink-0">
             
-            <!-- PANEL TOGGLE & COUNTDOWN CONTAINER -->
             <div class="w-full flex flex-col gap-2">
-                
-                <!-- TOMBOL PILIH TIPE COUNTDOWN & DARK/LIGHT MODE -->
                 <div class="grid grid-cols-3 gap-1.5 bg-slate-950 p-1 rounded-xl border border-sky-900/80">
                     <button onclick="switchCountdownTab('match')" id="tabBtnMatch" class="py-1.5 px-1 rounded-lg text-[9px] font-black uppercase transition bg-sky-600 text-white shadow cursor-pointer flex items-center justify-center gap-1">
                         ⚽ Match
@@ -384,7 +385,6 @@
                     </button>
                 </div>
 
-                <!-- HITUNG MUNDUR MATCH PERSIB -->
                 <div id="countdownBannerMatch" class="w-full bg-slate-900/90 border border-sky-500/50 text-white px-3 py-2.5 rounded-2xl flex flex-col gap-1.5 shadow-lg backdrop-blur-md">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 truncate">
@@ -406,7 +406,6 @@
                     </div>
                 </div>
 
-                <!-- HITUNG MUNDUR CUTI / VACATION -->
                 <div id="countdownBannerVacation" class="hidden w-full bg-slate-900/90 border border-amber-500/50 text-white px-3 py-2.5 rounded-2xl flex flex-col gap-1.5 shadow-lg backdrop-blur-md">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 truncate">
@@ -427,10 +426,8 @@
                         <div class="flex flex-col"><span id="vacSeconds" class="font-black text-rose-400 text-xs">00</span><span class="text-[8px] text-slate-400 uppercase font-semibold">Detik</span></div>
                     </div>
                 </div>
-
             </div>
 
-            <!-- KARTU UTAMA DENGAN ID calendarCardPrint -->
             <div id="calendarCardPrint" class="calendar-single-card">
                 <div class="calendar-top-banner">
                     <div>
@@ -445,7 +442,6 @@
                     </button>
                 </div>
 
-                <!-- MODE HARIAN -->
                 <div id="viewDaily" class="calendar-body-content">
                     <div class="w-full flex justify-between items-center min-h-[50px] z-10 px-1">
                         <div id="leagueWatermark" class="league-watermark"></div>
@@ -462,7 +458,6 @@
                     <img id="prabuImage" src="prabu.png" alt="Prabu Persib" class="prabu-mascot">
                 </div>
 
-                <!-- MODE BULANAN -->
                 <div id="viewMonthly" class="calendar-month-grid hidden">
                     <div class="grid grid-cols-7 gap-1 mb-1">
                         <div class="grid-header-day text-sky-600">MG</div>
@@ -480,7 +475,6 @@
                 <div class="paper-stack-bottom"></div>
             </div>
 
-            <!-- NAVIGASI -->
             <div class="flex items-center justify-between w-full gap-2">
                 <button id="btnPrev" onclick="navigasiWaktu(-1)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-3 rounded-xl shadow border border-slate-700 transition active:scale-95 text-xs text-center cursor-pointer">
                     ◀️ Kemarin
@@ -581,10 +575,8 @@
                     🛋️ Tambah OFF DAY (Tanggal Ini)
                 </button>
                 
-                <!-- FORM CUTI RENTANG TANGGAL -->
                 <div class="border border-amber-200 bg-amber-50/50 p-2.5 rounded-xl">
                     <label class="block text-xs font-bold text-amber-900 mb-1.5">🏖️ Tambah Cuti (Rentang Tanggal)</label>
-                    
                     <div class="grid grid-cols-2 gap-1.5 mb-2">
                         <div>
                             <label class="block text-[10px] text-gray-600 font-semibold mb-0.5">Dari Tanggal:</label>
@@ -595,9 +587,7 @@
                             <input type="date" id="cutiEnd" class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:outline-amber-500">
                         </div>
                     </div>
-
                     <input type="text" id="cutiDesc" placeholder="Keterangan (Cth: CUTI TOUR ASIA - REZA)" class="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg focus:outline-amber-500 mb-2 text-xs bg-white text-gray-800">
-                    
                     <button onclick="simpanJadwal('cuti')" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-3 rounded-xl transition text-xs shadow-xs cursor-pointer">
                         🏖️ Simpan Cuti Multi-Hari
                     </button>
@@ -632,6 +622,17 @@
 
                     <button onclick="simpanJadwal('persib')" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-3 rounded-xl transition text-xs shadow-xs cursor-pointer">
                         ⚽ Simpan Jadwal Persib
+                    </button>
+                </div>
+
+                <div class="border-t border-gray-200 pt-2.5">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Hasil Akhir & Pencetak Gol (Jika Selesai)</label>
+                    <div class="grid grid-cols-2 gap-1.5 mb-2">
+                        <input type="text" id="matchScoreInput" placeholder="Skor (Cth: 2-1)" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
+                        <input type="text" id="matchScorersInput" placeholder="Pencetak Gol (Cth: Ciro 12', David 45')" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
+                    </div>
+                    <button onclick="simpanHasilMatch()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl transition text-xs shadow-xs cursor-pointer">
+                        💾 Simpan Skor & Pencetak Gol
                     </button>
                 </div>
             </div>
@@ -770,7 +771,6 @@
                 btnPrev.innerText = "◀️ Bulan Lalu";
                 btnNext.innerText = "Bulan Depan ▶️";
                 btnModeLabel.innerText = "HARI";
-                
                 cardPrint.classList.add('monthly-active');
             } else {
                 viewMonthly.classList.add('hidden');
@@ -778,17 +778,15 @@
                 btnPrev.innerText = "◀️ Kemarin";
                 btnNext.innerText = "Besok ▶️";
                 btnModeLabel.innerText = "BULAN";
-                
                 cardPrint.classList.remove('monthly-active');
             }
         }
 
         function updateCountdownNextMatch() {
             const now = new Date();
-            
             const upcomingMatches = dataJadwalCloud
                 .filter(item => {
-                    if (!item.isPersib || !item.start) return false;
+                    if (!item.isPersib || !item.start || item.isFinished) return false;
                     let matchTimeStr = "19:30";
                     if (item.time && typeof item.time === 'string' && item.time.includes(':')) {
                         matchTimeStr = item.time.trim();
@@ -814,17 +812,13 @@
                     if (matchTimeStr.length === 4) matchTimeStr = "0" + matchTimeStr;
                 }
 
-                const targetDateStr = `${nextMatch.start}T${matchTimeStr}:00`;
-                const targetDate = new Date(targetDateStr);
+                const targetDate = new Date(`${nextMatch.start}T${matchTimeStr}:00`);
 
                 function calculateTime() {
                     const currentTime = new Date();
                     const diffTime = targetDate - currentTime;
 
-                    if (isNaN(diffTime)) {
-                        daysEl.innerText = "JADWAL INVALID";
-                        return;
-                    }
+                    if (isNaN(diffTime)) { daysEl.innerText = "JADWAL INVALID"; return; }
 
                     if (diffTime <= 0) {
                         daysEl.innerText = "HARI H / BERLANGSUNG!";
@@ -843,7 +837,6 @@
                     const dSeconds = Math.floor((diffTime % (1000 * 60)) / 1000);
 
                     daysEl.innerText = dDays === 0 ? "HARI INI!" : `${dDays} Hari Lagi`;
-
                     document.getElementById('cdDays').innerText = String(dDays).padStart(2, '0');
                     document.getElementById('cdHours').innerText = String(dHours).padStart(2, '0');
                     document.getElementById('cdMinutes').innerText = String(dMinutes).padStart(2, '0');
@@ -853,7 +846,7 @@
                 calculateTime();
                 countdownInterval = setInterval(calculateTime, 1000);
             } else {
-                titleEl.innerText = "Belum Ada Jadwal Match";
+                titleEl.innerText = "Belum Ada Jadwal Match Aktif";
                 daysEl.innerText = "-";
                 document.getElementById('cdDays').innerText = "00";
                 document.getElementById('cdHours').innerText = "00";
@@ -865,7 +858,6 @@
         function updateCountdownNextVacation() {
             const now = new Date();
             const todayStr = now.toISOString().split('T')[0];
-            
             const upcomingVacations = dataJadwalCloud
                 .filter(item => item.isCuti && item.start && item.start >= todayStr)
                 .sort((a,b) => a.start.localeCompare(b.start));
@@ -878,18 +870,13 @@
             if (upcomingVacations.length > 0) {
                 const nextVac = upcomingVacations[0];
                 titleEl.innerText = `${nextVac.title.replace(/^[🏖️\s]+/, '')}`;
-                
-                const targetDateStr = `${nextVac.start}T00:00:00`;
-                const targetDate = new Date(targetDateStr);
+                const targetDate = new Date(`${nextVac.start}T00:00:00`);
 
                 function calculateVacTime() {
                     const currentTime = new Date();
                     const diffTime = targetDate - currentTime;
 
-                    if (isNaN(diffTime)) {
-                        daysEl.innerText = "TANGGAL INVALID";
-                        return;
-                    }
+                    if (isNaN(diffTime)) { daysEl.innerText = "TANGGAL INVALID"; return; }
 
                     if (diffTime <= 0) {
                         daysEl.innerText = "CUTI TELAH DIMULAI!";
@@ -908,7 +895,6 @@
                     const dSeconds = Math.floor((diffTime % (1000 * 60)) / 1000);
 
                     daysEl.innerText = dDays === 0 ? "HARI INI!" : `${dDays} Hari Lagi`;
-
                     document.getElementById('vacDays').innerText = String(dDays).padStart(2, '0');
                     document.getElementById('vacHours').innerText = String(dHours).padStart(2, '0');
                     document.getElementById('vacMinutes').innerText = String(dMinutes).padStart(2, '0');
@@ -954,6 +940,11 @@
         }
 
         function renderKalender() {
+            const cardPrint = document.getElementById('calendarCardPrint');
+            cardPrint.classList.remove('page-transition');
+            void cardPrint.offsetWidth;
+            cardPrint.classList.add('page-transition');
+
             const tgl = tanggalAktif.getDate();
             const bln = tanggalAktif.getMonth();
             const thn = tanggalAktif.getFullYear();
@@ -1003,15 +994,28 @@
                     watermarkEl.classList.add('wm-' + jadwalPersib.kompetisi);
                 }
                 
+                let scoreBadgeHtml = '';
+                let scorersHtml = '';
+
+                if (jadwalPersib.isFinished && jadwalPersib.score) {
+                    scoreBadgeHtml = `<span class="bg-emerald-600 text-white font-black px-2 py-0.5 rounded-md text-[10px] inline-block my-1 shadow">SKOR AKHIR: ${jadwalPersib.score}</span>`;
+                    if (jadwalPersib.scorers) {
+                        scorersHtml = `<p class="text-[9px] text-emerald-200 font-semibold truncate">⚽ ${jadwalPersib.scorers}</p>`;
+                    }
+                } else {
+                    scoreBadgeHtml = `<p class="text-[9px] font-semibold text-sky-200 tracking-wider uppercase group-hover:text-white">MATCHDAY 📊</p>`;
+                }
+
                 const timeVenueText = (jadwalPersib.time || jadwalPersib.venue) 
                     ? `<p class="text-[9px] text-sky-200 mt-0.5">🕒 ${jadwalPersib.time || ''} ${jadwalPersib.venue ? '• ' + jadwalPersib.venue : ''}</p>`
                     : '';
 
                 opponentBox.innerHTML = `
-                    <div onclick="bukaModalScore('${jadwalPersib.title}')" title="Klik untuk lihat Live Score" class="bg-sky-900/90 text-white px-3 py-1.5 rounded-xl border border-sky-400 shadow-md cursor-pointer hover:bg-sky-800 transition active:scale-95 group">
-                        <p class="text-[9px] font-semibold text-sky-200 tracking-wider uppercase group-hover:text-white">MATCHDAY 📊</p>
-                        <p class="text-xs font-extrabold truncate">${jadwalPersib.title}</p>
+                    <div onclick="bukaModalScore('${jadwalPersib.title}')" title="Klik untuk lihat Live Score" class="bg-sky-900/95 text-white px-3 py-2 rounded-xl border border-sky-400 shadow-md cursor-pointer hover:bg-sky-800 transition active:scale-95 group">
+                        ${scoreBadgeHtml}
+                        <p class="text-xs font-extrabold truncate">${jadwalPersib.title.replace(/\[SELESAI\]/g, '').trim()}</p>
                         ${timeVenueText}
+                        ${scorersHtml}
                     </div>
                 `;
             } else {
@@ -1120,20 +1124,33 @@
                         if (matchTimeStr.length === 4) matchTimeStr = "0" + matchTimeStr;
                     }
                     const targetDateTime = new Date(`${item.start}T${matchTimeStr}:00`);
-                    const isPassed = targetDateTime < now;
+                    const isPassed = targetDateTime < now || item.isFinished;
 
                     const dateObj = new Date(item.start + 'T00:00:00');
                     const tglNum = dateObj.getDate();
                     const namaHariStr = namaHari[dateObj.getDay()];
                     const kompText = namaKompetisiMap[item.kompetisi] || 'Kompetisi';
 
+                    // PINTAS GOOGLE MAPS & CUACA BERDASARKAN STADION
+                    const venueName = item.venue ? item.venue.trim() : "Stadion Persib";
+                    const mapQuery = encodeURIComponent(venueName);
+                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+
                     const timeVenueText = (item.time || item.venue) 
-                        ? `<p class="text-[10px] ${isPassed ? 'text-slate-500' : 'text-sky-300/80'} font-normal mt-0.5">🕒 ${item.time || ''} ${item.venue ? '• ' + item.venue : ''}</p>`
+                        ? `<div class="flex items-center justify-between mt-1"><p class="text-[10px] ${isPassed ? 'text-slate-500' : 'text-sky-300/80'} font-normal">🕒 ${item.time || ''} ${item.venue ? '• ' + item.venue : ''}</p><a href="${mapUrl}" target="_blank" onclick="event.stopPropagation()" class="text-[9px] bg-sky-900 hover:bg-sky-800 text-sky-200 px-1.5 py-0.5 rounded border border-sky-700 flex items-center gap-1 shrink-0">📍 Peta/Cuaca</a></div>`
                         : '';
 
-                    // Styling tambahan jika sudah lewat (redup / abu-abu)
-                    const cardBgClass = isPassed ? "bg-slate-900/40 border-slate-800 opacity-75" : "bg-slate-950/80 border-sky-800/60 hover:border-sky-400";
-                    const badgePassedHTML = isPassed ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">SELESAI</span>` : `<span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-700">${kompText}</span>`;
+                    let scoreSubHtml = '';
+                    if (item.isFinished && item.score) {
+                        scoreSubHtml = `<p class="text-[10px] text-emerald-400 font-bold mt-1">⚽ Skor: ${item.score} ${item.scorers ? '(' + item.scorers + ')' : ''}</p>`;
+                    }
+
+                    const cardBgClass = isPassed ? "bg-slate-900/40 border-slate-800" : "bg-slate-950/80 border-sky-800/60 hover:border-sky-400";
+                    const badgeStatusHTML = item.isFinished 
+                        ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700">FT: ${item.score || 'SELESAI'}</span>` 
+                        : isPassed 
+                        ? `<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">SELESAI</span>`
+                        : `<span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-700">${kompText}</span>`;
 
                     const el = document.createElement('div');
                     el.className = `flex flex-col gap-1 p-2.5 rounded-xl border text-xs cursor-pointer transition active:scale-98 group ${cardBgClass}`;
@@ -1142,13 +1159,14 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="w-7 h-7 flex items-center justify-center ${isPassed ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-sky-500/20 text-sky-300 border-sky-500/30 group-hover:bg-sky-500 group-hover:text-white'} font-extrabold rounded-lg border text-xs shrink-0">${tglNum}</span>
-                                <span class="${isPassed ? 'text-slate-500 line-through' : 'text-slate-200'} font-bold text-[11px]">${namaHariStr}</span>
+                                <span class="${isPassed && !item.isFinished ? 'text-slate-500 line-through' : 'text-slate-200'} font-bold text-[11px]">${namaHariStr}</span>
                             </div>
-                            ${badgePassedHTML}
+                            ${badgeStatusHTML}
                         </div>
-                        <div class="mt-1 pl-9 font-extrabold ${isPassed ? 'text-slate-400' : 'text-sky-100 group-hover:text-sky-300'} text-xs">
-                            <div class="truncate">${isPassed ? '✅ [SELESAI] ' : ''}${item.title.replace(/\[SELESAI\]/g, '')} 📊</div>
+                        <div class="mt-1 pl-9 font-extrabold ${isPassed && !item.isFinished ? 'text-slate-400' : 'text-sky-100 group-hover:text-sky-300'} text-xs">
+                            <div class="truncate">${item.title.replace(/\[SELESAI\]/g, '')} 📊</div>
                             ${timeVenueText}
+                            ${scoreSubHtml}
                         </div>
                     `;
                     boxMatch.appendChild(el);
@@ -1258,6 +1276,15 @@
                 return item.start <= keyFormat && endVal >= keyFormat;
             });
 
+            const matchHariIni = jadwalHariIni.find(item => item.isPersib);
+            if (matchHariIni) {
+                document.getElementById('matchScoreInput').value = matchHariIni.score || "";
+                document.getElementById('matchScorersInput').value = matchHariIni.scorers || "";
+            } else {
+                document.getElementById('matchScoreInput').value = "";
+                document.getElementById('matchScorersInput').value = "";
+            }
+
             const listContainer = document.getElementById('listJadwalLokal');
             const divDaftar = document.getElementById('daftarJadwalLokal');
             
@@ -1326,13 +1353,46 @@
                     isPersib: true,
                     kompetisi: kompetisiDipilih,
                     time: waktu,
-                    venue: tempat
+                    venue: tempat,
+                    isFinished: false
                 };
             }
 
             dbRefJadwal.push(dataBaru).then(() => {
                 bukaModal();
             });
+        }
+
+        function simpanHasilMatch() {
+            const skor = document.getElementById('matchScoreInput').value.trim();
+            const pencetakGol = document.getElementById('matchScorersInput').value.trim();
+            
+            if (!skor) {
+                alert("Harap masukkan skor pertandingan terlebih dahulu!");
+                return;
+            }
+
+            const tahunStr = tanggalAktif.getFullYear();
+            const bulanStr = String(tanggalAktif.getMonth() + 1).padStart(2, '0');
+            const tglStr = String(tanggalAktif.getDate()).padStart(2, '0');
+            const keyFormat = `${tahunStr}-${bulanStr}-${tglStr}`;
+
+            const targetMatch = dataJadwalCloud.find(item => item.isPersib && item.start === keyFormat);
+
+            if (targetMatch) {
+                const cleanTitle = targetMatch.title.replace(/\[SELESAI\]/g, '').trim();
+                dbRefJadwal.child(targetMatch.firebaseId).update({
+                    score: skor,
+                    scorers: pencetakGol,
+                    isFinished: true,
+                    title: cleanTitle
+                }).then(() => {
+                    alert("Hasil skor & pencetak gol berhasil disimpan!");
+                    tutupModal();
+                });
+            } else {
+                alert("Tidak ditemukan jadwal Persib pada tanggal aktif ini.");
+            }
         }
 
         function hapusJadwal(firebaseId) {
