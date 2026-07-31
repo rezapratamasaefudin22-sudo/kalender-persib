@@ -445,7 +445,7 @@
                 <div id="viewDaily" class="calendar-body-content">
                     <div class="w-full flex justify-between items-center min-h-[50px] z-10 px-1">
                         <div id="leagueWatermark" class="league-watermark"></div>
-                        <div id="matchOpponentBox" class="ml-auto text-right max-w-[200px]"></div>
+                        <div id="matchOpponentBox" class="ml-auto text-right max-w-[210px]"></div>
                     </div>
 
                     <div id="displayDate" class="date-number">1</div>
@@ -595,7 +595,7 @@
                 
                 <div class="border-t border-gray-200 pt-2.5">
                     <label class="block text-xs font-bold text-gray-700 mb-1">Tambah Jadwal Persib</label>
-                    <input type="text" id="vsOpponent" placeholder="Contoh: Persib vs Persija" class="w-full px-3 py-1.5 border border-gray-200 rounded-xl focus:outline-sky-500 mb-2 text-xs bg-white text-gray-800">
+                    <input type="text" id="vsOpponent" placeholder="Contoh: Persib vs Arema" class="w-full px-3 py-1.5 border border-gray-200 rounded-xl focus:outline-sky-500 mb-2 text-xs bg-white text-gray-800">
                     
                     <div class="grid grid-cols-2 gap-1.5 mb-2">
                         <input type="text" id="matchTime" placeholder="Jam (19:30)" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-sky-500">
@@ -629,8 +629,9 @@
                     <label class="block text-xs font-bold text-gray-700 mb-1">Hasil Akhir & Pencetak Gol (Jika Selesai)</label>
                     <div class="grid grid-cols-2 gap-1.5 mb-2">
                         <input type="text" id="matchScoreInput" placeholder="Skor (Cth: 2-1)" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
-                        <input type="text" id="matchScorersInput" placeholder="Pencetak Gol (Cth: Ciro 12', David 45')" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
+                        <input type="text" id="matchScorersInput" placeholder="Pencetak Gol (Gunakan tanda | atau koma untuk pisah gol)" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
                     </div>
+                    <p class="text-[9px] text-gray-500 mb-2">💡 Tips: Gunakan tanda <code class="bg-gray-100 px-1 py-0.5 rounded text-gray-700">|</code> untuk memisah tim Persib (kiri) & Lawan (kanan). Untuk lebih dari 1 pencetak gol dalam 1 tim, pisahkan dengan koma (<code class="bg-gray-100 px-1 py-0.5 rounded text-gray-700">,</code>) atau baris baru.</p>
                     <button onclick="simpanHasilMatch()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl transition text-xs shadow-xs cursor-pointer">
                         💾 Simpan Skor & Pencetak Gol
                     </button>
@@ -939,6 +940,37 @@
             document.getElementById('liveScoreIframeSide').src = "about:blank";
         }
 
+        // Fungsi pembantu untuk memecah pencetak gol menjadi baris-baris ke bawah jika ada koma atau multi-pencetak
+        function formatScorersHTML(scorersRaw) {
+            if (!scorersRaw) return '';
+            
+            let scorerPersibHtml = '';
+            let scorerLawanHtml = '';
+
+            if (scorersRaw.includes('|')) {
+                const splitTeams = scorersRaw.split('|');
+                const rawPersib = splitTeams[0].trim();
+                const rawLawan = splitTeams[1] ? splitTeams[1].trim() : '';
+
+                // Pecah berdasarkan koma (,) atau baris baru jika ada lebih dari 1 pencetak gol dalam 1 tim
+                const listPersib = rawPersib.split(',').map(s => s.trim()).filter(Boolean);
+                const listLawan = rawLawan.split(',').map(s => s.trim()).filter(Boolean);
+
+                scorerPersibHtml = listPersib.map(s => `<div class="truncate">⚽ ${s}</div>`).join('');
+                scorerLawanHtml = listLawan.map(s => `<div class="truncate">${s} ⚽</div>`).join('');
+            } else {
+                const listSingle = scorersRaw.split(',').map(s => s.trim()).filter(Boolean);
+                scorerPersibHtml = listSingle.map(s => `<div class="truncate">⚽ ${s}</div>`).join('');
+            }
+
+            return `
+                <div class="grid grid-cols-2 gap-2 mt-1 text-[9px] font-bold text-emerald-200 border-t border-sky-700/60 pt-1">
+                    <div class="text-left flex flex-col gap-0.5">${scorerPersibHtml}</div>
+                    <div class="text-right flex flex-col gap-0.5">${scorerLawanHtml}</div>
+                </div>
+            `;
+        }
+
         function renderKalender() {
             const cardPrint = document.getElementById('calendarCardPrint');
             cardPrint.classList.remove('page-transition');
@@ -1000,7 +1032,7 @@
                 if (jadwalPersib.isFinished && jadwalPersib.score) {
                     scoreBadgeHtml = `<span class="bg-emerald-600 text-white font-black px-2 py-0.5 rounded-md text-[10px] inline-block my-1 shadow">SKOR AKHIR: ${jadwalPersib.score}</span>`;
                     if (jadwalPersib.scorers) {
-                        scorersHtml = `<p class="text-[9px] text-emerald-200 font-semibold truncate">⚽ ${jadwalPersib.scorers}</p>`;
+                        scorersHtml = formatScorersHTML(jadwalPersib.scorers);
                     }
                 } else {
                     scoreBadgeHtml = `<p class="text-[9px] font-semibold text-sky-200 tracking-wider uppercase group-hover:text-white">MATCHDAY 📊</p>`;
@@ -1131,7 +1163,6 @@
                     const namaHariStr = namaHari[dateObj.getDay()];
                     const kompText = namaKompetisiMap[item.kompetisi] || 'Kompetisi';
 
-                    // PINTAS GOOGLE MAPS & CUACA BERDASARKAN STADION
                     const venueName = item.venue ? item.venue.trim() : "Stadion Persib";
                     const mapQuery = encodeURIComponent(venueName);
                     const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
@@ -1142,7 +1173,36 @@
 
                     let scoreSubHtml = '';
                     if (item.isFinished && item.score) {
-                        scoreSubHtml = `<p class="text-[10px] text-emerald-400 font-bold mt-1">⚽ Skor: ${item.score} ${item.scorers ? '(' + item.scorers + ')' : ''}</p>`;
+                        if (item.scorers) {
+                            let scorerPersibHtml = '';
+                            let scorerLawanHtml = '';
+                            if (item.scorers.includes('|')) {
+                                const splitTeams = item.scorers.split('|');
+                                const rawPersib = splitTeams[0].trim();
+                                const rawLawan = splitTeams[1] ? splitTeams[1].trim() : '';
+
+                                const listPersib = rawPersib.split(',').map(s => s.trim()).filter(Boolean);
+                                const listLawan = rawLawan.split(',').map(s => s.trim()).filter(Boolean);
+
+                                scorerPersibHtml = listPersib.map(s => `<div class="truncate">• ${s}</div>`).join('');
+                                scorerLawanHtml = listLawan.map(s => `<div class="truncate">${s} •</div>`).join('');
+                            } else {
+                                const listSingle = item.scorers.split(',').map(s => s.trim()).filter(Boolean);
+                                scorerPersibHtml = listSingle.map(s => `<div class="truncate">• ${s}</div>`).join('');
+                            }
+
+                            scoreSubHtml = `
+                                <div class="mt-1.5 pt-1 border-t border-slate-800 text-[10px]">
+                                    <p class="text-emerald-400 font-bold mb-1">⚽ Skor: ${item.score}</p>
+                                    <div class="grid grid-cols-2 gap-2 text-emerald-200 font-medium">
+                                        <div class="flex flex-col gap-0.5">${scorerPersibHtml}</div>
+                                        <div class="text-right flex flex-col gap-0.5">${scorerLawanHtml}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            scoreSubHtml = `<p class="text-[10px] text-emerald-400 font-bold mt-1">⚽ Skor: ${item.score}</p>`;
+                        }
                     }
 
                     const cardBgClass = isPassed ? "bg-slate-900/40 border-slate-800" : "bg-slate-950/80 border-sky-800/60 hover:border-sky-400";
@@ -1377,11 +1437,13 @@
             const tglStr = String(tanggalAktif.getDate()).padStart(2, '0');
             const keyFormat = `${tahunStr}-${bulanStr}-${tglStr}`;
 
-            const targetMatch = dataJadwalCloud.find(item => item.isPersib && item.start === keyFormat);
+            const targetMatch = dataJadwalCloud.filter(item => item.isPersib && item.start === keyFormat);
+            // Ambil match yang paling relevan (jika ada lebih dari satu di hari yang sama)
+            const targetMatchItem = targetMatch[0];
 
-            if (targetMatch) {
-                const cleanTitle = targetMatch.title.replace(/\[SELESAI\]/g, '').trim();
-                dbRefJadwal.child(targetMatch.firebaseId).update({
+            if (targetMatchItem) {
+                const cleanTitle = targetMatchItem.title.replace(/\[SELESAI\]/g, '').trim();
+                dbRefJadwal.child(targetMatchItem.firebaseId).update({
                     score: skor,
                     scorers: pencetakGol,
                     isFinished: true,
