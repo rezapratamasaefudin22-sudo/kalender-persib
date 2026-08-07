@@ -216,6 +216,7 @@
         .wm-piala-indonesia { background-image: url('piala-indonesia.png'); }
         .wm-acl2 { background-image: url('acl2.png'); }
         .wm-asean-club { background-image: url('asean-club.png'); }
+        .wm-dewata-challenge { background-image: url('dewata-challenge.png'); }
 
         .prabu-mascot {
             position: absolute;
@@ -609,6 +610,7 @@
                         <option value="piala-indonesia">🦅 Piala Indonesia</option>
                         <option value="acl2">🌏 ACL Two</option>
                         <option value="asean-club">🦁 ASEAN Club</option>
+                        <option value="dewata-challenge">🏝️ Dewata Challenge Series 2026</option>
                     </select>
 
                     <div class="flex gap-2 mb-2.5">
@@ -626,14 +628,35 @@
                 </div>
 
                 <div class="border-t border-gray-200 pt-2.5">
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Hasil Akhir & Pencetak Gol (Jika Selesai)</label>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Hasil Akhir, Pencetak Gol & Adu Penalti</label>
                     <div class="grid grid-cols-2 gap-1.5 mb-2">
                         <input type="text" id="matchScoreInput" placeholder="Skor (Cth: 2-1)" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
-                        <input type="text" id="matchScorersInput" placeholder="Pencetak Gol (Gunakan tanda | atau koma untuk pisah gol)" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
+                        <input type="text" id="matchPenaltyInput" placeholder="Penalti (Cth: 5-6)" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-amber-500 bg-amber-50/30 text-gray-800">
                     </div>
-                    <p class="text-[9px] text-gray-500 mb-2">💡 Tips: Gunakan tanda <code class="bg-gray-100 px-1 py-0.5 rounded text-gray-700">|</code> untuk memisah tim Persib (kiri) & Lawan (kanan). Untuk lebih dari 1 pencetak gol dalam 1 tim, pisahkan dengan koma (<code class="bg-gray-100 px-1 py-0.5 rounded text-gray-700">,</code>) atau baris baru.</p>
+                    
+                    <div class="space-y-2 mb-2">
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <div>
+                                <label class="block text-[10px] font-bold text-emerald-700 mb-0.5">Pencetak Gol Persib:</label>
+                                <textarea id="matchScorersPersib" rows="2" placeholder="Ciro, David" class="w-full px-2 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-amber-800 mb-0.5">Pencetak Gol Lawan:</label>
+                                <textarea id="matchScorersLawan" rows="2" placeholder="Yaris, Oki" class="w-full px-2 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-amber-500 bg-amber-50/30 text-gray-800"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <input type="text" id="penPersibScorers" placeholder="Penalti Sukses Persib" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-emerald-500 bg-emerald-50/30 text-gray-800">
+                            <input type="text" id="penLawanScorers" placeholder="Penalti Sukses Lawan" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-amber-500 bg-amber-50/30 text-gray-800">
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <input type="text" id="penPersibMissed" placeholder="Penalti Gagal Persib" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-rose-500 bg-rose-50/30 text-gray-800">
+                            <input type="text" id="penLawanMissed" placeholder="Penalti Gagal Lawan" class="px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-rose-500 bg-rose-50/30 text-gray-800">
+                        </div>
+                    </div>
                     <button onclick="simpanHasilMatch()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl transition text-xs shadow-xs cursor-pointer">
-                        💾 Simpan Skor & Pencetak Gol
+                        💾 Simpan Skor, Penalti & Pencetak Gol
                     </button>
                 </div>
             </div>
@@ -684,7 +707,8 @@
             'piala-presiden': 'Piala Presiden',
             'piala-indonesia': 'Piala Indonesia',
             'acl2': 'ACL Two',
-            'asean-club': 'ASEAN Club'
+            'asean-club': 'ASEAN Club',
+            'dewata-challenge': 'Dewata Challenge Series'
         };
 
         dbRefJadwal.on('value', (snapshot) => {
@@ -940,33 +964,57 @@
             document.getElementById('liveScoreIframeSide').src = "about:blank";
         }
 
-        // Fungsi pembantu untuk memecah pencetak gol menjadi baris-baris ke bawah jika ada koma atau multi-pencetak
-        function formatScorersHTML(scorersRaw) {
-            if (!scorersRaw) return '';
-            
-            let scorerPersibHtml = '';
-            let scorerLawanHtml = '';
+        function formatScorersHTML(scorersPersibRaw, scorersLawanRaw, penaltyRaw, pPersibScorers, pLawanScorers, pPersibMissed, pLawanMissed) {
+            let persibGoalHtml = '';
+            let lawanGoalHtml = '';
 
-            if (scorersRaw.includes('|')) {
-                const splitTeams = scorersRaw.split('|');
-                const rawPersib = splitTeams[0].trim();
-                const rawLawan = splitTeams[1] ? splitTeams[1].trim() : '';
+            // Waktu Normal Persib
+            if (scorersPersibRaw) {
+                const pNorm = scorersPersibRaw.split(',').map(s => s.trim()).filter(Boolean);
+                persibGoalHtml += pNorm.map(s => `<div class="truncate">⚽ ${s}</div>`).join('');
+            }
 
-                // Pecah berdasarkan koma (,) atau baris baru jika ada lebih dari 1 pencetak gol dalam 1 tim
-                const listPersib = rawPersib.split(',').map(s => s.trim()).filter(Boolean);
-                const listLawan = rawLawan.split(',').map(s => s.trim()).filter(Boolean);
+            // Waktu Normal Lawan
+            if (scorersLawanRaw) {
+                const lNorm = scorersLawanRaw.split(',').map(s => s.trim()).filter(Boolean);
+                lawanGoalHtml += lNorm.map(s => `<div class="truncate">${s} ⚽</div>`).join('');
+            }
 
-                scorerPersibHtml = listPersib.map(s => `<div class="truncate">⚽ ${s}</div>`).join('');
-                scorerLawanHtml = listLawan.map(s => `<div class="truncate">${s} ⚽</div>`).join('');
-            } else {
-                const listSingle = scorersRaw.split(',').map(s => s.trim()).filter(Boolean);
-                scorerPersibHtml = listSingle.map(s => `<div class="truncate">⚽ ${s}</div>`).join('');
+            // Penalti Sukses & Gagal Persib (Kiri)
+            let persibPenHtml = '';
+            if (pPersibScorers) {
+                const pS = pPersibScorers.split(',').map(s => s.trim()).filter(Boolean);
+                persibPenHtml += pS.map(s => `<div class="truncate text-amber-200">✅ ${s} (Pen)</div>`).join('');
+            }
+            if (pPersibMissed) {
+                const pM = pPersibMissed.split(',').map(s => s.trim()).filter(Boolean);
+                persibPenHtml += pM.map(s => `<div class="truncate text-rose-300">❌ ${s} (Gagal)</div>`).join('');
+            }
+
+            // Penalti Sukses & Gagal Lawan (Kanan)
+            let lawanPenHtml = '';
+            if (pLawanScorers) {
+                const lS = pLawanScorers.split(',').map(s => s.trim()).filter(Boolean);
+                lawanPenHtml += lS.map(s => `<div class="truncate text-amber-200">(Pen) ${s} ✅</div>`).join('');
+            }
+            if (pLawanMissed) {
+                const lM = pLawanMissed.split(',').map(s => s.trim()).filter(Boolean);
+                lawanPenHtml += lM.map(s => `<div class="truncate text-rose-300">(Gagal) ${s} ❌</div>`).join('');
+            }
+
+            let finalPersibCol = [persibGoalHtml, persibPenHtml].filter(Boolean).join('<div class="my-0.5 border-t border-sky-700/40"></div>');
+            let finalLawanCol = [lawanGoalHtml, lawanPenHtml].filter(Boolean).join('<div class="my-0.5 border-t border-sky-700/40"></div>');
+
+            let penaltyHeaderHtml = '';
+            if (penaltyRaw) {
+                penaltyHeaderHtml = `<div class="col-span-2 text-center text-amber-300 font-extrabold mt-1 pt-1 border-t border-sky-700/60">🎯 Adu Penalti: (${penaltyRaw})</div>`;
             }
 
             return `
                 <div class="grid grid-cols-2 gap-2 mt-1 text-[9px] font-bold text-emerald-200 border-t border-sky-700/60 pt-1">
-                    <div class="text-left flex flex-col gap-0.5">${scorerPersibHtml}</div>
-                    <div class="text-right flex flex-col gap-0.5">${scorerLawanHtml}</div>
+                    <div class="text-left flex flex-col gap-0.5">${finalPersibCol}</div>
+                    <div class="text-right flex flex-col gap-0.5">${finalLawanCol}</div>
+                    ${penaltyHeaderHtml}
                 </div>
             `;
         }
@@ -1030,9 +1078,26 @@
                 let scorersHtml = '';
 
                 if (jadwalPersib.isFinished && jadwalPersib.score) {
-                    scoreBadgeHtml = `<span class="bg-emerald-600 text-white font-black px-2 py-0.5 rounded-md text-[10px] inline-block my-1 shadow">SKOR AKHIR: ${jadwalPersib.score}</span>`;
-                    if (jadwalPersib.scorers) {
-                        scorersHtml = formatScorersHTML(jadwalPersib.scorers);
+                    let textScoreDisplay = `SKOR AKHIR: ${jadwalPersib.score}`;
+                    if (jadwalPersib.penalty) {
+                        textScoreDisplay += ` (Pen: ${jadwalPersib.penalty})`;
+                    }
+                    scoreBadgeHtml = `<span class="bg-emerald-600 text-white font-black px-2 py-0.5 rounded-md text-[10px] inline-block my-1 shadow">${textScoreDisplay}</span>`;
+                    
+                    if (jadwalPersib.scorersPersib || jadwalPersib.scorersLawan || jadwalPersib.scorers || jadwalPersib.penalty || jadwalPersib.penPersibScorers || jadwalPersib.penLawanScorers || jadwalPersib.penPersibMissed || jadwalPersib.penLawanMissed) {
+                        // Kompatibilitas data lama 'scorers' jika belum dipecah
+                        let sPersib = jadwalPersib.scorersPersib;
+                        let sLawan = jadwalPersib.scorersLawan;
+                        if (!sPersib && !sLawan && jadwalPersib.scorers) {
+                            if (jadwalPersib.scorers.includes('|')) {
+                                const sp = jadwalPersib.scorers.split('|');
+                                sPersib = sp[0];
+                                sLawan = sp[1];
+                            } else {
+                                sPersib = jadwalPersib.scorers;
+                            }
+                        }
+                        scorersHtml = formatScorersHTML(sPersib, sLawan, jadwalPersib.penalty, jadwalPersib.penPersibScorers, jadwalPersib.penLawanScorers, jadwalPersib.penPersibMissed, jadwalPersib.penLawanMissed);
                     }
                 } else {
                     scoreBadgeHtml = `<p class="text-[9px] font-semibold text-sky-200 tracking-wider uppercase group-hover:text-white">MATCHDAY 📊</p>`;
@@ -1173,35 +1238,69 @@
 
                     let scoreSubHtml = '';
                     if (item.isFinished && item.score) {
-                        if (item.scorers) {
-                            let scorerPersibHtml = '';
-                            let scorerLawanHtml = '';
-                            if (item.scorers.includes('|')) {
-                                const splitTeams = item.scorers.split('|');
-                                const rawPersib = splitTeams[0].trim();
-                                const rawLawan = splitTeams[1] ? splitTeams[1].trim() : '';
+                        let textScoreDisplay = item.score;
+                        if (item.penalty) textScoreDisplay += ` (Pen: ${item.penalty})`;
 
-                                const listPersib = rawPersib.split(',').map(s => s.trim()).filter(Boolean);
-                                const listLawan = rawLawan.split(',').map(s => s.trim()).filter(Boolean);
-
-                                scorerPersibHtml = listPersib.map(s => `<div class="truncate">• ${s}</div>`).join('');
-                                scorerLawanHtml = listLawan.map(s => `<div class="truncate">${s} •</div>`).join('');
-                            } else {
-                                const listSingle = item.scorers.split(',').map(s => s.trim()).filter(Boolean);
-                                scorerPersibHtml = listSingle.map(s => `<div class="truncate">• ${s}</div>`).join('');
+                        if (item.scorersPersib || item.scorersLawan || item.scorers || item.penalty || item.penPersibScorers || item.penLawanScorers || item.penPersibMissed || item.penLawanMissed) {
+                            let sPersib = item.scorersPersib;
+                            let sLawan = item.scorersLawan;
+                            if (!sPersib && !sLawan && item.scorers) {
+                                if (item.scorers.includes('|')) {
+                                    const sp = item.scorers.split('|');
+                                    sPersib = sp[0];
+                                    sLawan = sp[1];
+                                } else {
+                                    sPersib = item.scorers;
+                                }
                             }
+
+                            let persibGoalHtml = '';
+                            if (sPersib) {
+                                persibGoalHtml += sPersib.split(',').map(s => s.trim()).filter(Boolean).map(s => `<div class="truncate">• ${s}</div>`).join('');
+                            }
+
+                            let lawanGoalHtml = '';
+                            if (sLawan) {
+                                lawanGoalHtml += sLawan.split(',').map(s => s.trim()).filter(Boolean).map(s => `<div class="truncate">${s} •</div>`).join('');
+                            }
+
+                            let penPersibSub = '';
+                            if (item.penPersibScorers) {
+                                penPersibSub += item.penPersibScorers.split(',').map(s => s.trim()).filter(Boolean).map(s => `<div class="truncate text-amber-300">✅ ${s} (Pen)</div>`).join('');
+                            }
+                            if (item.penPersibMissed) {
+                                penPersibSub += item.penPersibMissed.split(',').map(s => s.trim()).filter(Boolean).map(s => `<div class="truncate text-rose-300">❌ ${s} (Gagal)</div>`).join('');
+                            }
+
+                            let penLawanSub = '';
+                            if (item.penLawanScorers) {
+                                penLawanSub += item.penLawanScorers.split(',').map(s => s.trim()).filter(Boolean).map(s => `<div class="truncate text-amber-300">(Pen) ${s} ✅</div>`).join('');
+                            }
+                            if (item.penLawanMissed) {
+                                penLawanSub += item.penLawanMissed.split(',').map(s => s.trim()).filter(Boolean).map(s => `<div class="truncate text-rose-300">(Gagal) ${s} ❌</div>`).join('');
+                            }
+
+                            let finalPersibCol = [persibGoalHtml, penPersibSub].filter(Boolean).join('<div class="my-0.5 border-t border-slate-800"></div>');
+                            let finalLawanCol = [lawanGoalHtml, penLawanSub].filter(Boolean).join('<div class="my-0.5 border-t border-slate-800"></div>');
+
+                            let penaltySideHtml = item.penalty ? `
+                                <div class="col-span-2 text-center text-amber-300 font-bold mt-1 pt-1 border-t border-slate-800">
+                                    🎯 Adu Penalti: (${item.penalty})
+                                </div>
+                            ` : '';
 
                             scoreSubHtml = `
                                 <div class="mt-1.5 pt-1 border-t border-slate-800 text-[10px]">
-                                    <p class="text-emerald-400 font-bold mb-1">⚽ Skor: ${item.score}</p>
+                                    <p class="text-emerald-400 font-bold mb-1">⚽ Skor: ${textScoreDisplay}</p>
                                     <div class="grid grid-cols-2 gap-2 text-emerald-200 font-medium">
-                                        <div class="flex flex-col gap-0.5">${scorerPersibHtml}</div>
-                                        <div class="text-right flex flex-col gap-0.5">${scorerLawanHtml}</div>
+                                        <div class="flex flex-col gap-0.5">${finalPersibCol}</div>
+                                        <div class="text-right flex flex-col gap-0.5">${finalLawanCol}</div>
+                                        ${penaltySideHtml}
                                     </div>
                                 </div>
                             `;
                         } else {
-                            scoreSubHtml = `<p class="text-[10px] text-emerald-400 font-bold mt-1">⚽ Skor: ${item.score}</p>`;
+                            scoreSubHtml = `<p class="text-[10px] text-emerald-400 font-bold mt-1">⚽ Skor: ${textScoreDisplay}</p>`;
                         }
                     }
 
@@ -1339,10 +1438,36 @@
             const matchHariIni = jadwalHariIni.find(item => item.isPersib);
             if (matchHariIni) {
                 document.getElementById('matchScoreInput').value = matchHariIni.score || "";
-                document.getElementById('matchScorersInput').value = matchHariIni.scorers || "";
+                document.getElementById('matchPenaltyInput').value = matchHariIni.penalty || "";
+                
+                // Ambil nilai dari properti baru atau pecah dari 'scorers' lama jika ada
+                let sPersib = matchHariIni.scorersPersib || "";
+                let sLawan = matchHariIni.scorersLawan || "";
+                if (!sPersib && !sLawan && matchHariIni.scorers) {
+                    if (matchHariIni.scorers.includes('|')) {
+                        const sp = matchHariIni.scorers.split('|');
+                        sPersib = sp[0].trim();
+                        sLawan = sp[1] ? sp[1].trim() : "";
+                    } else {
+                        sPersib = matchHariIni.scorers;
+                    }
+                }
+                document.getElementById('matchScorersPersib').value = sPersib;
+                document.getElementById('matchScorersLawan').value = sLawan;
+
+                document.getElementById('penPersibScorers').value = matchHariIni.penPersibScorers || "";
+                document.getElementById('penLawanScorers').value = matchHariIni.penLawanScorers || "";
+                document.getElementById('penPersibMissed').value = matchHariIni.penPersibMissed || "";
+                document.getElementById('penLawanMissed').value = matchHariIni.penLawanMissed || "";
             } else {
                 document.getElementById('matchScoreInput').value = "";
-                document.getElementById('matchScorersInput').value = "";
+                document.getElementById('matchPenaltyInput').value = "";
+                document.getElementById('matchScorersPersib').value = "";
+                document.getElementById('matchScorersLawan').value = "";
+                document.getElementById('penPersibScorers').value = "";
+                document.getElementById('penLawanScorers').value = "";
+                document.getElementById('penPersibMissed').value = "";
+                document.getElementById('penLawanMissed').value = "";
             }
 
             const listContainer = document.getElementById('listJadwalLokal');
@@ -1425,7 +1550,13 @@
 
         function simpanHasilMatch() {
             const skor = document.getElementById('matchScoreInput').value.trim();
-            const pencetakGol = document.getElementById('matchScorersInput').value.trim();
+            const penalti = document.getElementById('matchPenaltyInput').value.trim();
+            const scorersPersib = document.getElementById('matchScorersPersib').value.trim();
+            const scorersLawan = document.getElementById('matchScorersLawan').value.trim();
+            const pPersibScorers = document.getElementById('penPersibScorers').value.trim();
+            const pLawanScorers = document.getElementById('penLawanScorers').value.trim();
+            const pPersibMissed = document.getElementById('penPersibMissed').value.trim();
+            const pLawanMissed = document.getElementById('penLawanMissed').value.trim();
             
             if (!skor) {
                 alert("Harap masukkan skor pertandingan terlebih dahulu!");
@@ -1438,24 +1569,34 @@
             const keyFormat = `${tahunStr}-${bulanStr}-${tglStr}`;
 
             const targetMatch = dataJadwalCloud.filter(item => item.isPersib && item.start === keyFormat);
-            // Ambil match yang paling relevan (jika ada lebih dari satu di hari yang sama)
             const targetMatchItem = targetMatch[0];
 
             if (targetMatchItem) {
                 const cleanTitle = targetMatchItem.title.replace(/\[SELESAI\]/g, '').trim();
                 dbRefJadwal.child(targetMatchItem.firebaseId).update({
                     score: skor,
-                    scorers: pencetakGol,
+                    penalty: penalti,
+                    scorersPersib: scorersPersib,
+                    scorersLawan: scorersLawan,
+                    scorers: `${scorersPersib} | ${scorersLawan}`, // simpan gabungan juga agar kompatibel
+                    penPersibScorers: pPersibScorers,
+                    penLawanScorers: pLawanScorers,
+                    penPersibMissed: pPersibMissed,
+                    penLawanMissed: pLawanMissed,
                     isFinished: true,
                     title: cleanTitle
                 }).then(() => {
-                    alert("Hasil skor & pencetak gol berhasil disimpan!");
+                    alert("Hasil skor, penalti & pencetak gol berhasil disimpan secara terpisah!");
                     tutupModal();
                 });
             } else {
                 alert("Tidak ditemukan jadwal Persib pada tanggal aktif ini.");
             }
         }
+
+        (function(){
+           // init dummy
+        })();
 
         function hapusJadwal(firebaseId) {
             dbRefJadwal.child(firebaseId).remove().then(() => {
