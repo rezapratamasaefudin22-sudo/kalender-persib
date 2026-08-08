@@ -75,7 +75,6 @@
         .calendar-single-card.monthly-active #displayDayName,
         .calendar-single-card.monthly-active #displayEventContainer,
         .calendar-single-card.monthly-active #matchOpponentBox,
-        .calendar-single-card.monthly-active #leagueWatermark,
         .calendar-single-card.monthly-active #prabuImage {
             display: none !important;
         }
@@ -150,10 +149,11 @@
             position: relative;
             min-height: 340px;
             background-color: var(--card-bg);
-            background-image: var(--bg-image, none);
-            background-repeat: no-repeat;
-            background-position: center bottom;
-            background-size: contain;
+            /* 2 Lapis Background: Lapis 1 (Gambar Pemain), Lapis 2 (Gradasi/Pola Tambahan di Atasnya) */
+            background-image: var(--bg-image, none), url('bg-pola.png'), linear-gradient(135deg, rgba(0, 75, 147, 0.08) 0%, rgba(15, 23, 42, 0.12) 100%);
+            background-repeat: no-repeat, no-repeat, no-repeat;
+            background-position: center bottom, center, center;
+            background-size: contain, cover, cover;
             overflow: hidden;
             transition: background-color 0.3s ease;
         }
@@ -235,6 +235,11 @@
             padding: 1.25rem 1rem 2rem 1rem;
             min-height: 330px;
             background: var(--card-bg);
+            /* 2 Lapis Background untuk Mode Bulanan */
+            background-image: radial-gradient(circle at top, rgba(2, 132, 199, 0.1) 0%, transparent 70%), linear-gradient(135deg, rgba(0, 75, 147, 0.05) 0%, rgba(15, 23, 42, 0.08) 100%);
+            background-repeat: no-repeat, no-repeat;
+            background-position: center, center;
+            background-size: cover, cover;
             transition: background-color 0.3s ease;
         }
 
@@ -968,19 +973,16 @@
             let persibGoalHtml = '';
             let lawanGoalHtml = '';
 
-            // Waktu Normal Persib
             if (scorersPersibRaw) {
                 const pNorm = scorersPersibRaw.split(',').map(s => s.trim()).filter(Boolean);
                 persibGoalHtml += pNorm.map(s => `<div class="truncate">⚽ ${s}</div>`).join('');
             }
 
-            // Waktu Normal Lawan
             if (scorersLawanRaw) {
                 const lNorm = scorersLawanRaw.split(',').map(s => s.trim()).filter(Boolean);
                 lawanGoalHtml += lNorm.map(s => `<div class="truncate">${s} ⚽</div>`).join('');
             }
 
-            // Penalti Sukses & Gagal Persib (Kiri)
             let persibPenHtml = '';
             if (pPersibScorers) {
                 const pS = pPersibScorers.split(',').map(s => s.trim()).filter(Boolean);
@@ -991,7 +993,6 @@
                 persibPenHtml += pM.map(s => `<div class="truncate text-rose-300">❌ ${s} (Gagal)</div>`).join('');
             }
 
-            // Penalti Sukses & Gagal Lawan (Kanan)
             let lawanPenHtml = '';
             if (pLawanScorers) {
                 const lS = pLawanScorers.split(',').map(s => s.trim()).filter(Boolean);
@@ -1053,11 +1054,10 @@
             watermarkEl.className = "league-watermark";
 
             const customBg = jadwalHariIni.find(item => item.customWallpaper);
-            if (customBg && customBg.customWallpaper !== 'auto') {
-                calBody.style.setProperty('--bg-image', `url('${customBg.customWallpaper}.png')`);
-            } else {
-                calBody.style.setProperty('--bg-image', `url('${tgl}.PNG')`);
-            }
+            let selectedImg = (customBg && customBg.customWallpaper !== 'auto') ? `${customBg.customWallpaper}.png` : `${tgl}.PNG`;
+            
+            // Menerapkan 2 lapis background (Lapis 1: Gambar Pemain, Lapis 2: Gradasi Tambahan)
+            calBody.style.setProperty('--bg-image', `url('${selectedImg}'), linear-gradient(135deg, rgba(0, 75, 147, 0.08) 0%, rgba(15, 23, 42, 0.12) 100%)`);
 
             dateEl.className = "date-number";
             if (jadwalHariIni.some(item => item.isCuti)) {
@@ -1085,7 +1085,6 @@
                     scoreBadgeHtml = `<span class="bg-emerald-600 text-white font-black px-2 py-0.5 rounded-md text-[10px] inline-block my-1 shadow">${textScoreDisplay}</span>`;
                     
                     if (jadwalPersib.scorersPersib || jadwalPersib.scorersLawan || jadwalPersib.scorers || jadwalPersib.penalty || jadwalPersib.penPersibScorers || jadwalPersib.penLawanScorers || jadwalPersib.penPersibMissed || jadwalPersib.penLawanMissed) {
-                        // Kompatibilitas data lama 'scorers' jika belum dipecah
                         let sPersib = jadwalPersib.scorersPersib;
                         let sLawan = jadwalPersib.scorersLawan;
                         if (!sPersib && !sLawan && jadwalPersib.scorers) {
@@ -1440,7 +1439,6 @@
                 document.getElementById('matchScoreInput').value = matchHariIni.score || "";
                 document.getElementById('matchPenaltyInput').value = matchHariIni.penalty || "";
                 
-                // Ambil nilai dari properti baru atau pecah dari 'scorers' lama jika ada
                 let sPersib = matchHariIni.scorersPersib || "";
                 let sLawan = matchHariIni.scorersLawan || "";
                 if (!sPersib && !sLawan && matchHariIni.scorers) {
@@ -1578,7 +1576,7 @@
                     penalty: penalti,
                     scorersPersib: scorersPersib,
                     scorersLawan: scorersLawan,
-                    scorers: `${scorersPersib} | ${scorersLawan}`, // simpan gabungan juga agar kompatibel
+                    scorers: `${scorersPersib} | ${scorersLawan}`,
                     penPersibScorers: pPersibScorers,
                     penLawanScorers: pLawanScorers,
                     penPersibMissed: pPersibMissed,
@@ -1593,10 +1591,6 @@
                 alert("Tidak ditemukan jadwal Persib pada tanggal aktif ini.");
             }
         }
-
-        (function(){
-           // init dummy
-        })();
 
         function hapusJadwal(firebaseId) {
             dbRefJadwal.child(firebaseId).remove().then(() => {
