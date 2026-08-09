@@ -149,7 +149,6 @@
             position: relative;
             min-height: 340px;
             background-color: var(--card-bg);
-            /* 2 Lapis Background: Lapis 1 (Gambar Pemain), Lapis 2 (Gradasi/Pola Tambahan di Atasnya) */
             background-image: var(--bg-image, none), url('bg-pola.png'), linear-gradient(135deg, rgba(0, 75, 147, 0.08) 0%, rgba(15, 23, 42, 0.12) 100%);
             background-repeat: no-repeat, no-repeat, no-repeat;
             background-position: center bottom, center, center;
@@ -186,6 +185,7 @@
 
         .date-number.is-off-day { color: #dc2626 !important; }
         .date-number.is-cuti-day { color: #d97706 !important; }
+        .date-number.is-persib-day { color: #0284c7 !important; }
 
         #displayDayName {
             font-family: 'Saira Stencil One', sans-serif !important;
@@ -235,7 +235,6 @@
             padding: 1.25rem 1rem 2rem 1rem;
             min-height: 330px;
             background: var(--card-bg);
-            /* 2 Lapis Background untuk Mode Bulanan */
             background-image: radial-gradient(circle at top, rgba(2, 132, 199, 0.1) 0%, transparent 70%), linear-gradient(135deg, rgba(0, 75, 147, 0.05) 0%, rgba(15, 23, 42, 0.08) 100%);
             background-repeat: no-repeat, no-repeat;
             background-position: center, center;
@@ -272,10 +271,28 @@
         .day-cell:hover { background-color: var(--grid-hover); }
         .day-cell.active-day {
             background-color: #0284c7;
-            color: #ffffff;
+            color: #ffffff !important;
             box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
         }
         .day-cell.other-month { color: var(--sub-text); opacity: 0.5; pointer-events: none; }
+        
+        .day-cell.is-holiday {
+            color: #ef4444 !important;
+            font-weight: bold;
+        }
+        .day-cell.is-holiday.active-day {
+            background-color: #dc2626 !important;
+            color: #ffffff !important;
+        }
+
+        .day-cell.is-persib-cell {
+            color: #0284c7 !important;
+            font-weight: bold;
+        }
+        .day-cell.is-persib-cell.active-day {
+            background-color: #0284c7 !important;
+            color: #ffffff !important;
+        }
 
         .cell-dots { display: flex; gap: 2px; position: absolute; bottom: 3px; }
         .dot-off { width: 5px; height: 5px; background-color: #ef4444; border-radius: 50%; }
@@ -466,7 +483,7 @@
 
                 <div id="viewMonthly" class="calendar-month-grid hidden">
                     <div class="grid grid-cols-7 gap-1 mb-1">
-                        <div class="grid-header-day text-sky-600">MG</div>
+                        <div class="grid-header-day text-rose-500 font-bold">MG</div>
                         <div class="grid-header-day">SN</div>
                         <div class="grid-header-day">SL</div>
                         <div class="grid-header-day">RB</div>
@@ -1056,14 +1073,15 @@
             const customBg = jadwalHariIni.find(item => item.customWallpaper);
             let selectedImg = (customBg && customBg.customWallpaper !== 'auto') ? `${customBg.customWallpaper}.png` : `${tgl}.PNG`;
             
-            // Menerapkan 2 lapis background (Lapis 1: Gambar Pemain, Lapis 2: Gradasi Tambahan)
             calBody.style.setProperty('--bg-image', `url('${selectedImg}'), linear-gradient(135deg, rgba(0, 75, 147, 0.08) 0%, rgba(15, 23, 42, 0.12) 100%)`);
 
             dateEl.className = "date-number";
-            if (jadwalHariIni.some(item => item.isCuti)) {
+            if (hr === 0 || jadwalHariIni.some(item => item.isOff)) {
+                dateEl.classList.add('is-off-day'); // Minggu & Off Day jadi Merah
+            } else if (jadwalHariIni.some(item => item.isCuti)) {
                 dateEl.classList.add('is-cuti-day');
-            } else if (jadwalHariIni.some(item => item.isOff)) {
-                dateEl.classList.add('is-off-day');
+            } else if (jadwalHariIni.some(item => item.isPersib)) {
+                dateEl.classList.add('is-persib-day'); // Hari Pertandingan Persib jadi Biru
             }
 
             const jadwalPersib = jadwalHariIni.find(item => item.isPersib);
@@ -1357,9 +1375,8 @@
                 cell.className = "day-cell";
                 cell.innerText = d;
 
-                if (d === tanggalAktif.getDate()) {
-                    cell.classList.add('active-day');
-                }
+                const currentLoopDate = new Date(thn, bln, d);
+                const dayOfWeek = currentLoopDate.getDay();
 
                 const bulanStr = String(bln + 1).padStart(2, '0');
                 const tglStr = String(d).padStart(2, '0');
@@ -1369,6 +1386,16 @@
                     const endVal = item.end || item.start;
                     return item.start <= keyFormat && endVal >= keyFormat;
                 });
+
+                if (dayOfWeek === 0 || jadwalSel.some(j => j.isOff || j.isCuti)) {
+                    cell.classList.add('is-holiday'); // Minggu & Off Day jadi Merah di Grid
+                } else if (jadwalSel.some(j => j.isPersib)) {
+                    cell.classList.add('is-persib-cell'); // Pertandingan Persib jadi Biru di Grid
+                }
+
+                if (d === tanggalAktif.getDate()) {
+                    cell.classList.add('active-day');
+                }
 
                 if (jadwalSel.length > 0) {
                     const dotsDiv = document.createElement('div');
